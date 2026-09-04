@@ -4,7 +4,7 @@ services:
     build:
       context: .
       target: builder
-    container_name: banco-app
+    container_name: bank-app
     ports:
       - "3000:3000"
     environment:
@@ -25,17 +25,17 @@ services:
   # PostgreSQL
   postgres:
     image: postgres:15-alpine
-    container_name: banco-postgres
+    container_name: bank-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: banco_db
+      POSTGRES_DB: bank_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d banco_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bank_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,7 +43,7 @@ services:
   # Redis
   redis:
     image: redis:7-alpine
-    container_name: banco-redis
+    container_name: bank-redis
     ports:
       - "6379:6379"
     volumes:
