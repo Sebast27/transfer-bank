@@ -1,0 +1,43 @@
+# Dependencias
+node_modules/
+package-lock.json
+yarn.lock
+
+# Código compilado
+dist/
+build/
+*.js
+*.js.map
+*.d.ts
+!*.d.ts
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# Docker
+*.pid
+*.pid.lock
+
+# Test
+coverage/
+test-results/
