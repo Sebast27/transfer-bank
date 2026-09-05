@@ -9,7 +9,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/banco_db
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bank_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     volumes:

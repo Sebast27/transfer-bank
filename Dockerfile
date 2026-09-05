@@ -2,13 +2,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache openssl
+
 # Copiar archivos de dependencias
 COPY package*.json ./
 COPY prisma ./prisma/
 
 # Instalar dependencias
 RUN npm ci
-RUN apk add --no-cache openssl
 
 # Copiar código fuente
 COPY . .
@@ -21,6 +22,8 @@ RUN npm run build
 
 # Etapa de producción
 FROM node:20-alpine AS production
+
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
