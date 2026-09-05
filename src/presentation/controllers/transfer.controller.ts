@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus, Inject } from '@nestjs/common';
-import { TransferDto } from '../../core/application/dto/transfer.dto';
-import { ITransactionService, TRANSACTION_SERVICE } from '../../core/application/ports/transaction-service.port';
+import { TransferDto } from '../../core/transfer-bank/application/dto/transfer.dto';
+import { ITransactionService, TRANSACTION_SERVICE } from '../../core/transfer-bank/application/ports/transaction-service.port';
 
 @Controller('transfers')
 export class TransferController {

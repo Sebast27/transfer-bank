@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Account {
   id               String        @id @default(cuid())
   accountNumber    String        @unique
@@ -29,4 +39,9 @@ model Transaction {
   toAccountId   String
   fromAccount   Account   @relation("FromAccount", fields: [fromAccountId], references: [id])
   toAccount     Account   @relation("ToAccount", fields: [toAccountId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
 }

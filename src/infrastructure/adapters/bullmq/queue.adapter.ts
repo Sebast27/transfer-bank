@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { IQueuePort, QUEUE_PORT } from '../../../core/application/ports/queue.port';
+import { IQueuePort, QUEUE_PORT } from '../../../core/transfer-bank/application/ports/queue.port';
 
 @Injectable()
 export class BullMQQueueAdapter implements IQueuePort {

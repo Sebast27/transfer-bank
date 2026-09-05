@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { BullMQQueueAdapter } from './queue.adapter';
 import { TransferProcessor } from './transfer.processor';
-import { QUEUE_PORT } from '../../../core/application/ports/queue.port';
+import { QUEUE_PORT } from '../../../core/transfer-bank/application/ports/queue.port';
 
 @Module({
   imports: [

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Transaction } from '../../../core/domain/entities/transaction.entity';
-import { Money } from '../../../core/domain/value-objects/money.vo';
-import { ITransactionRepository } from '../../../core/domain/ports/transaction-repository.port';
+import { Transaction } from '../../../core/transfer-bank/domain/entities/transaction.entity';
+import { Money } from '../../../core/transfer-bank/domain/value-objects/money.vo';
+import { ITransactionRepository } from '../../../core/transfer-bank/domain/ports/transaction-repository.port';
 import { PrismaService } from './prisma.service';
 
 @Injectable()
