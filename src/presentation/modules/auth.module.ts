@@ -12,8 +12,12 @@ import { AUTH_REPOSITORY } from '../../core/auth/application/ports/auth-reposito
 import { AUTH_TOKEN_PORT } from '../../core/auth/application/ports/auth-token.port';
 import { AUTH_HASH_PORT } from '../../core/auth/application/ports/auth-hash.port';
 import { AUTH_SERVICE } from '../../core/auth/application/ports/auth-service.port';
-import { PrismaModule } from '../../infrastructure/adapters//prisma/prisma.module';  
+import { PrismaModule } from '../../infrastructure/adapters/prisma/prisma.module';  
 import { JwtStrategy } from '../../infrastructure/adapters/auth/strategies/jwt.strategy';
+import { RefreshTokenUseCase } from '@/core/auth/application/use-cases/refresh-token.use-case';
+import { REFRESH_USE_CASE } from '@/core/auth/application/ports/refresh.port';
+import { LOGIN_USE_CASE } from '@/core/auth/application/ports/login.port';
+import { REGISTER_USE_CASE } from '@/core/auth/application/ports/register.port';
 
 @Module({
   imports: [
@@ -31,9 +35,20 @@ import { JwtStrategy } from '../../infrastructure/adapters/auth/strategies/jwt.s
       provide: AUTH_SERVICE,
       useClass: AuthService,
     },
-    // Casos de uso
-    RegisterUseCase,
-    LoginUseCase,
+    // Casos de uso con tokens
+    {
+      provide: REGISTER_USE_CASE,
+      useClass: RegisterUseCase,
+    },
+    {
+      provide: LOGIN_USE_CASE,
+      useClass: LoginUseCase,
+    },
+    {
+      provide: REFRESH_USE_CASE,
+      useClass: RefreshTokenUseCase,
+    },
+
     // Adaptadores de infraestructura (puertos secundarios)
     {
       provide: AUTH_REPOSITORY,

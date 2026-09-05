@@ -3,10 +3,10 @@ import { IAuthRepository, AUTH_REPOSITORY } from '../ports/auth-repository.port'
 import { IAuthTokenPort, AUTH_TOKEN_PORT } from '../ports/auth-token.port';
 import { IAuthHashPort, AUTH_HASH_PORT } from '../ports/auth-hash.port';
 import { LoginDto } from '../dto/login.dto';
-import { UserMapper } from '../mappers/user.mapper';
+import { ILoginUseCase } from '../ports/login.port';
 
 @Injectable()
-export class LoginUseCase {
+export class LoginUseCase implements ILoginUseCase {
   constructor(
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
