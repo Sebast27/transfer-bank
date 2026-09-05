@@ -1,8 +1,11 @@
-import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus, Inject } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus, Inject, UseGuards } from '@nestjs/common';
 import { TransferDto } from '../../core/transfer-bank/application/dto/transfer.dto';
 import { ITransactionService, TRANSACTION_SERVICE } from '../../core/transfer-bank/application/ports/transaction-service.port';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { User } from '../decorators/user.decorator';
 
 @Controller('transfers')
+@UseGuards(JwtAuthGuard)
 export class TransferController {
   constructor(
     @Inject(TRANSACTION_SERVICE)
@@ -11,17 +14,29 @@ export class TransferController {
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
-  async transfer(@Body() dto: TransferDto) {
+  async transfer(
+    @Body() dto: TransferDto,
+    @User() user: any,
+  ) {
+    // Asociar la transferencia al usuario autenticado
+    console.log(`User ${user.email} is creating a transfer`);
+
     const result = await this.transactionService.transfer(dto);
     return {
-      message: 'Transferencia iniciada correctamente',
+      message: 'Transfer initiated successfully',
       transactionId: result.transactionId,
       status: result.status,
     };
   }
 
   @Get(':id')
-  async getStatus(@Param('id') id: string) {
+  async getStatus(
+    @Param('id') id: string,
+    @User() user: any,
+  ) {
+    // Asociar la consulta de estado al usuario autenticado
+    console.log(`User ${user.email} is checking the status of transfer ${id}`);
+    
     return this.transactionService.getStatus(id);
   }
 }

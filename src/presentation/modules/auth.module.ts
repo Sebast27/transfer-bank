@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { AuthController } from '../controllers/auth.controller';
 import { AuthService } from '../../core/auth/application/services/auth.service';
 import { RegisterUseCase } from '../../core/auth/application/use-cases/register.use-case';
@@ -12,10 +13,12 @@ import { AUTH_TOKEN_PORT } from '../../core/auth/application/ports/auth-token.po
 import { AUTH_HASH_PORT } from '../../core/auth/application/ports/auth-hash.port';
 import { AUTH_SERVICE } from '../../core/auth/application/ports/auth-service.port';
 import { PrismaModule } from '../../infrastructure/adapters//prisma/prisma.module';  
+import { JwtStrategy } from '../../infrastructure/adapters/auth/strategies/jwt.strategy';
 
 @Module({
   imports: [
     PrismaModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'secret',
       signOptions: { expiresIn: '1h' },
@@ -44,7 +47,8 @@ import { PrismaModule } from '../../infrastructure/adapters//prisma/prisma.modul
       provide: AUTH_HASH_PORT,
       useClass: BcryptHashAdapter,
     },
+    JwtStrategy,
   ],
-  exports: [AUTH_SERVICE],
+  exports: [AUTH_SERVICE, PassportModule],
 })
 export class AuthModule {}

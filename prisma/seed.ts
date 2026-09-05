@@ -1,9 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Creando cuentas de ejemplo...');
+
+  const hashedPassword = await bcrypt.hash('Password123!', 10);
 
   // 1. Crear un usuario de prueba
   const user = await prisma.user.upsert({
@@ -11,7 +14,7 @@ async function main() {
     update: {},
     create: {
       email: 'user@test.com',
-      password: 'hashed_password_here',
+      password: hashedPassword,
       name: 'Usuario de Prueba',
       role: 'USER',
     },
