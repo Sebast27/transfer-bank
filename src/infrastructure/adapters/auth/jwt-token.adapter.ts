@@ -10,15 +10,25 @@ export class JwtTokenAdapter implements IAuthTokenPort {
     const payload = { sub: userId, email, role };
     
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, { expiresIn: '1h' }),
-      this.jwtService.signAsync(payload, { expiresIn: '7d', secret: process.env.JWT_REFRESH_SECRET }),
+      this.jwtService.signAsync(payload, { 
+        secret: process.env.JWT_SECRET || 'secret',
+        expiresIn: '1h' }),
+      this.jwtService.signAsync(payload, { 
+        secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
+        expiresIn: '7d' }),
     ]);
 
     return { accessToken, refreshToken };
   }
 
   async verifyToken(token: string) {
-    const payload = this.jwtService.verify(token);
-    return { userId: payload.sub, email: payload.email, role: payload.role };
+    const payload = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET || 'secret',
+    });
+    return { 
+      userId: payload.sub, 
+      email: payload.email, 
+      role: payload.role 
+    };
   }
 }

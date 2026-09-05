@@ -10,6 +10,8 @@ import { ProcessTransferUseCase } from '../../core/transfer-bank/application/use
 import { BullMQModule } from '../../infrastructure/adapters/bullmq/bullmq.module';
 import { HealthController } from '../controllers/health.controller';
 import { AccountController } from '../controllers/account.controller';
+import { AuthModule } from './auth.module';
+import { AuthController } from '../controllers/auth.controller';
 
 @Module({
   imports: [
@@ -40,8 +42,9 @@ import { AccountController } from '../controllers/account.controller';
     }),
     PrismaModule,
     BullMQModule,
+    AuthModule,
   ],
-  controllers: [HealthController, TransferController, AccountController],
+  controllers: [HealthController, TransferController, AccountController, AuthController],
   providers: [
     {
       provide: TRANSACTION_REPOSITORY,
