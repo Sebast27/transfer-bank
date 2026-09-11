@@ -18,6 +18,7 @@ import { RefreshTokenUseCase } from '@/core/auth/application/use-cases/refresh-t
 import { REFRESH_USE_CASE } from '@/core/auth/application/ports/refresh.port';
 import { LOGIN_USE_CASE } from '@/core/auth/application/ports/login.port';
 import { REGISTER_USE_CASE } from '@/core/auth/application/ports/register.port';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Module({
   imports: [
@@ -63,7 +64,8 @@ import { REGISTER_USE_CASE } from '@/core/auth/application/ports/register.port';
       useClass: BcryptHashAdapter,
     },
     JwtStrategy,
+    RolesGuard,
   ],
-  exports: [AUTH_SERVICE, PassportModule],
+  exports: [AUTH_SERVICE, PassportModule, RolesGuard],
 })
 export class AuthModule {}

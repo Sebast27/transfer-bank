@@ -12,6 +12,7 @@ import { HealthController } from '../controllers/health.controller';
 import { AccountController } from '../controllers/account.controller';
 import { AuthModule } from './auth.module';
 import { AuthController } from '../controllers/auth.controller';
+import { AdminController } from '../controllers/admin.controller';
 
 @Module({
   imports: [
@@ -44,7 +45,12 @@ import { AuthController } from '../controllers/auth.controller';
     BullMQModule,
     AuthModule,
   ],
-  controllers: [HealthController, TransferController, AccountController, AuthController],
+  controllers: [
+    HealthController, 
+    TransferController, 
+    AccountController, 
+    AuthController, 
+    AdminController],
   providers: [
     {
       provide: TRANSACTION_REPOSITORY,

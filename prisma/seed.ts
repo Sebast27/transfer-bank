@@ -8,6 +8,22 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash('Password123!', 10);
 
+  // Create ADMIN user
+  const adminPassword = await bcrypt.hash('Admin123!', 10);
+
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@test.com' },
+    update: {},
+    create: {
+      email: 'admin@test.com',
+      password: adminPassword,
+      name: 'Administrador',
+      role: 'ADMIN',
+    },
+  });
+
+  console.log(`✅ Admin creado: ${admin.email} (ID: ${admin.id})`);
+
   // 1. Crear un usuario de prueba
   const user = await prisma.user.upsert({
     where: { email: 'user@test.com' },
