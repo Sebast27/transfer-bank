@@ -13,6 +13,7 @@ import { AccountController } from '../controllers/account.controller';
 import { AuthModule } from './auth.module';
 import { AuthController } from '../controllers/auth.controller';
 import { AdminController } from '../controllers/admin.controller';
+import { StatementModule } from './statement.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { AdminController } from '../controllers/admin.controller';
     PrismaModule,
     BullMQModule,
     AuthModule,
+    StatementModule,
   ],
   controllers: [
     HealthController, 

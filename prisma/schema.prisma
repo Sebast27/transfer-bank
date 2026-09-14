@@ -29,6 +29,7 @@ model Account {
   updatedAt       DateTime @updatedAt
   fromTransactions Transaction[] @relation("FromAccount")
   toTransactions   Transaction[] @relation("ToAccount")
+  statements      Statement[]
 }
 
 model Transaction {
@@ -48,4 +49,17 @@ model Transaction {
 enum Role {
   USER
   ADMIN
+}
+
+model Statement {
+  id          String   @id @default(cuid())
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id])
+  periodStart DateTime
+  periodEnd   DateTime
+  status      String   @default("PENDING")
+  filePath    String?
+  error       String?
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
 }

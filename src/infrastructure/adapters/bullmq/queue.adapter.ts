@@ -1,19 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { IQueuePort, QUEUE_PORT } from '../../../core/transfer-bank/application/ports/queue.port';
+import { IQueuePort } from '../../../core/transfer-bank/application/ports/queue.port';
 
 @Injectable()
 export class BullMQQueueAdapter implements IQueuePort {
-  constructor(@InjectQueue('transfer-queue') private readonly queue: Queue) {}
+  constructor(
+    @InjectQueue('transfer-queue') private readonly transferQueue: Queue,
+    @InjectQueue('statement-queue') private readonly statementQueue: Queue,
+  ) {}
 
   async add(jobName: string, data: any): Promise<void> {
-    await this.queue.add(jobName, data, {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 1000,
-      },
-    });
+    // Route to correct queue based on jobName or data
+    if (jobName === 'statement-queue') {
+      await this.statementQueue.add('process-statement', data, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      });
+    } else {
+      await this.transferQueue.add(jobName, data, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      });
+    }
   }
 }
