@@ -3,7 +3,10 @@ import { TransferDto } from '../../core/transfer-bank/application/dto/transfer.d
 import { ITransactionService, TRANSACTION_SERVICE } from '../../core/transfer-bank/application/ports/transaction-service.port';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from '../decorators/user.decorator';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('transfers')
+@ApiBearerAuth('JWT-auth')
 @Controller('transfers')
 @UseGuards(JwtAuthGuard)
 export class TransferController {
@@ -14,6 +17,10 @@ export class TransferController {
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: 'Crear una transferencia (asíncrona)' })
+  @ApiResponse({ status: 202, description: 'Transferencia iniciada' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiResponse({ status: 401, description: 'No autenticado' })
   async transfer(
     @Body() dto: TransferDto,
     @User() user: any,
@@ -30,6 +37,9 @@ export class TransferController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Consultar estado de una transferencia' })
+  @ApiResponse({ status: 200, description: 'Estado de la transferencia' })
+  @ApiResponse({ status: 404, description: 'Transferencia no encontrada' })
   async getStatus(
     @Param('id') id: string,
     @User() user: any,

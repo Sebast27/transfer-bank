@@ -3,16 +3,22 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { PrismaService } from '../../infrastructure/adapters/prisma/prisma.service';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('admin')
+@ApiBearerAuth('JWT-auth')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard) // 🔒 Doble guard: autenticación + roles
-@Roles('ADMIN') // 🔒 Solo ADMIN puede acceder
+@UseGuards(JwtAuthGuard, RolesGuard) // Doble guard: autenticación + roles
+@Roles('ADMIN') // Solo ADMIN puede acceder
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('transfers')
+  @ApiOperation({ summary: 'Listar TODAS las transferencias (solo ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Lista de transferencias' })
+  @ApiResponse({ status: 403, description: 'Acceso denegado' })
   async getAllTransfers() {
     this.logger.log('🔍 Admin consultando TODAS las transferencias');
 
@@ -41,6 +47,9 @@ export class AdminController {
   }
 
   @Get('accounts')
+  @ApiOperation({ summary: 'Listar TODAS las cuentas (solo ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Lista de cuentas' })
+  @ApiResponse({ status: 403, description: 'Acceso denegado' })
   async getAllAccounts() {
     this.logger.log('🔍 Admin consultando TODAS las cuentas');
 

@@ -19,7 +19,10 @@ import { IGenerateStatementUseCase, GENERATE_STATEMENT_USE_CASE } from '../../co
 import { IStatementRepository, STATEMENT_REPOSITORY } from '../../core/transfer-bank/domain/ports/statement-repository.port';
 import { RequestStatementDto } from '../../core/transfer-bank/application/dto/request-statement.dto';
 import * as fs from 'fs';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('statements')
+@ApiBearerAuth('JWT-auth')
 @Controller('statements')
 @UseGuards(JwtAuthGuard)
 export class StatementController {
@@ -32,12 +35,16 @@ export class StatementController {
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({ summary: 'Solicitar estado de cuenta (PDF asíncrono)' })
+  @ApiResponse({ status: 202, description: 'Statement encolado' })
   async requestStatement(@Body() dto: RequestStatementDto, @User() user: any) {
     console.log(`User ${user.email} requested statement for ${dto.accountNumber}`);
     return this.generateStatementUseCase.execute(dto);
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Consultar estado del statement' })
+  @ApiResponse({ status: 200, description: 'Estado del statement' })
   async getStatementStatus(@Param('id') id: string, @User() user: any) {
     console.log(`User ${user.email} checking statement ${id}`);
     const statement = await this.statementRepository.findById(id);
@@ -50,6 +57,10 @@ export class StatementController {
   }
 
   @Get(':id/download')
+  @ApiOperation({ summary: 'Descargar PDF del statement' })
+  @ApiResponse({ status: 200, description: 'PDF descargado' })
+  @ApiResponse({ status: 400, description: 'Statement no está listo' })
+  @ApiResponse({ status: 404, description: 'Statement no encontrado' })
   async downloadStatement(
     @Param('id') id: string,
     @User() user: any,
