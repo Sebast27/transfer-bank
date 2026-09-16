@@ -1,13 +1,18 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { IQueuePort } from '../../../core/transfer-bank/application/ports/queue.port';
 
 @Processor('transfer-queue')
 export class TransferProcessor extends WorkerHost {
   private readonly logger = new Logger(TransferProcessor.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('QUEUE_PORT')
+    private readonly queuePort: IQueuePort,
+  ) {
     super();
   }
 
@@ -22,10 +27,12 @@ export class TransferProcessor extends WorkerHost {
       // 1. Buscar cuentas
       const fromAccount = await this.prisma.account.findUnique({
         where: { accountNumber: fromAccountNumber },
+        include: { user: true },
       });
 
       const toAccount = await this.prisma.account.findUnique({
         where: { accountNumber: toAccountNumber },
+        include: { user: true },
       });
 
       if (!fromAccount) {
@@ -43,19 +50,19 @@ export class TransferProcessor extends WorkerHost {
 
       // 3. Ejecutar transferencia (operación atómica)
       await this.prisma.$transaction(async (tx) => {
-        // ✅ ACTUALIZAR SALDO ORIGEN
+        // ACTUALIZAR SALDO ORIGEN
         await tx.account.update({
           where: { id: fromAccount.id },
           data: { balance: { decrement: amount } },
         });
 
-        // ✅ ACTUALIZAR SALDO DESTINO
+        // ACTUALIZAR SALDO DESTINO
         await tx.account.update({
           where: { id: toAccount.id },
           data: { balance: { increment: amount } },
         });
 
-        // ✅ COMPLETAR TRANSACCIÓN
+        // COMPLETAR TRANSACCIÓN
         await tx.transaction.update({
           where: { id: transactionId },
           data: {
@@ -68,6 +75,16 @@ export class TransferProcessor extends WorkerHost {
       this.logger.log(`✅ Transferencia completada: ${transactionId}`);
       this.logger.log(`   Nuevo saldo origen: $${fromAccount.balance - amount}`);
       this.logger.log(`   Nuevo saldo destino: $${toAccount.balance + amount}`);
+
+      // Enqueue email notification
+      await this.queuePort.add('notification-queue', {
+        to: fromAccount.user.email,
+        subject: 'Transferencia completada',
+        body: `Tu transferencia de $${amount} a ${toAccountNumber} ha sido completada exitosamente.`,
+        template: 'transfer-completed',
+      });
+
+      this.logger.log(`📧 Notificación encolada para: ${fromAccount.user.email}`);
 
       return { success: true };
     } catch (error) {

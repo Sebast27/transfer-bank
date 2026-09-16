@@ -3,6 +3,7 @@ import { Job } from 'bullmq';
 import { Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { IPdfGeneratorPort, PDF_GENERATOR_PORT } from '../../../core/transfer-bank/application/ports/pdf-generator.port';
+import { IQueuePort, QUEUE_PORT } from '@/core/transfer-bank/application/ports/queue.port';
 
 @Processor('statement-queue')
 export class StatementProcessor extends WorkerHost {
@@ -12,6 +13,8 @@ export class StatementProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
     @Inject(PDF_GENERATOR_PORT)
     private readonly pdfGenerator: IPdfGeneratorPort,
+    @Inject(QUEUE_PORT)
+    private readonly queuePort: IQueuePort,
   ) {
     super();
   }
@@ -85,6 +88,16 @@ export class StatementProcessor extends WorkerHost {
       });
 
       this.logger.log(`✅ Estado de cuenta completado: ${statementId}`);
+
+      // Enqueue email notification
+      await this.queuePort.add('notification-queue', {
+        to: statement.account.user.email,
+        subject: 'Estado de cuenta disponible',
+        body: `Tu estado de cuenta para ${statement.account.accountNumber} está listo. Puedes descargarlo desde la aplicación.`,
+        template: 'statement-ready',
+      });
+
+      this.logger.log(`📧 Notificación encolada para: ${statement.account.user.email}`);
 
       return { success: true, filePath };
     } catch (error) {
