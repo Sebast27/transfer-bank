@@ -40,7 +40,7 @@ export class AccountController {
     }
 
     // Verificar que la cuenta pertenece al usuario autenticado
-    if (account.userId !== user.id) {
+    if (account.userId !== user.id && user.role !== 'ADMIN') {
       this.logger.warn(`⚠️ User ${user.email} tried to access another user's account`);
       throw new NotFoundException(`Account ${accountNumber} not found`);
     }

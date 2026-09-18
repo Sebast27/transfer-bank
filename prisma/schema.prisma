@@ -30,6 +30,8 @@ model Account {
   fromTransactions Transaction[] @relation("FromAccount")
   toTransactions   Transaction[] @relation("ToAccount")
   statements      Statement[]
+  deposits        Deposit[]     
+  withdrawals     Withdrawal[]  
 }
 
 model Transaction {
@@ -44,6 +46,31 @@ model Transaction {
   toAccount     Account  @relation("ToAccount", fields: [toAccountId], references: [id])
   createdAt     DateTime @default(now())
   completedAt   DateTime?
+}
+
+model Deposit {
+  id          String   @id @default(cuid())
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id])
+  amount      Float
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  requestedBy String   // User ID que solicita
+  approvedBy  String?  // Admin ID que aprueba
+  reference   String?
+  createdAt   DateTime @default(now())
+  approvedAt  DateTime?
+  completedAt DateTime?
+}
+
+model Withdrawal {
+  id          String   @id @default(cuid())
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id])
+  amount      Float
+  status      String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  reference   String?
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
 }
 
 enum Role {

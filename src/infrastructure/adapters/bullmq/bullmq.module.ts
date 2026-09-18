@@ -9,6 +9,7 @@ import { PDF_GENERATOR_PORT } from '../../../core/transfer-bank/application/port
 import { PdfKitAdapter } from '../pdf/pdfkit.adapter';
 import { EmailAdapter } from '../email/email.adapter';
 import { EMAIL_PORT } from '@/core/transfer-bank/application/ports/email.port';
+import { DepositProcessor } from './deposit.processor';
 
 @Module({
   imports: [
@@ -16,12 +17,14 @@ import { EMAIL_PORT } from '@/core/transfer-bank/application/ports/email.port';
       { name: 'transfer-queue' },
       { name: 'statement-queue' },
       { name: 'notification-queue' },
+      { name: 'deposit-queue' },
     ),
   ],
   providers: [
     TransferProcessor,
     StatementProcessor,
     NotificationProcessor,
+    DepositProcessor,
     {
       provide: QUEUE_PORT,
       useClass: BullMQQueueAdapter,

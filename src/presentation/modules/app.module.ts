@@ -14,6 +14,7 @@ import { AuthModule } from './auth.module';
 import { AuthController } from '../controllers/auth.controller';
 import { AdminController } from '../controllers/admin.controller';
 import { StatementModule } from './statement.module';
+import { DepositModule } from './deposit.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { StatementModule } from './statement.module';
     BullMQModule,
     AuthModule,
     StatementModule,
+    DepositModule,
   ],
   controllers: [
     HealthController, 
