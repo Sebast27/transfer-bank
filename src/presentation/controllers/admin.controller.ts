@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Logger, Post, Body, Inject } from '@nestjs/common';
+import { Controller, Get, UseGuards, Logger, Post, Body, Inject, Patch, Param } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
@@ -6,6 +6,9 @@ import { PrismaService } from '../../infrastructure/adapters/prisma/prisma.servi
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateAccountDto } from '@/core/auth/application/dto/create-account.dto';
 import { CREATE_ACCOUNT_USE_CASE, ICreateAccountUseCase } from '@/core/auth/application/ports/create-account.port';
+import { GET_USERS_USE_CASE, IGetUsersUseCase } from '@/core/auth/application/ports/get-users.port';
+import { IUpdateUserUseCase, UPDATE_USER_USE_CASE } from '@/core/auth/application/ports/update-user.port';
+import { UpdateUserDto } from '@/core/auth/application/dto/update-user.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth('JWT-auth')
@@ -19,6 +22,10 @@ export class AdminController {
     private readonly prisma: PrismaService,
     @Inject(CREATE_ACCOUNT_USE_CASE)
     private readonly createAccountUseCase: ICreateAccountUseCase,
+    @Inject(GET_USERS_USE_CASE)
+    private readonly getUsersUseCase: IGetUsersUseCase,
+    @Inject(UPDATE_USER_USE_CASE)
+    private readonly updateUserUseCase: IUpdateUserUseCase,
   ) {}
 
   // ============================================
@@ -96,5 +103,26 @@ export class AdminController {
   async createAccount(@Body() dto: CreateAccountDto) {
     this.logger.log(`🔍 Admin creando cuenta ${dto.accountNumber} para ${dto.userEmail}`);
     return this.createAccountUseCase.execute(dto);
+  }
+
+  // ============================================
+  // USERS
+  // ============================================
+
+  @Get('users')
+  @ApiOperation({ summary: 'Listar TODOS los usuarios con sus cuentas (ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Lista de usuarios' })
+  async getAllUsers() {
+    this.logger.log('🔍 Admin consultando TODOS los usuarios');
+    return this.getUsersUseCase.execute();
+  }
+
+  @Patch('users/:id')
+  @ApiOperation({ summary: 'Actualizar un usuario (ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Usuario actualizado' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    this.logger.log(`🔍 Admin actualizando usuario ${id}`);
+    return this.updateUserUseCase.execute(id, dto);
   }
 }

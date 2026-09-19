@@ -20,6 +20,7 @@ export class AuthRepositoryAdapter implements IAuthRepository {
       password: user.password,
       name: user.name,
       role: user.role as any,
+      isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     });
@@ -38,6 +39,7 @@ export class AuthRepositoryAdapter implements IAuthRepository {
       password: user.password,
       name: user.name,
       role: user.role as any,
+      isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     });
@@ -50,6 +52,7 @@ export class AuthRepositoryAdapter implements IAuthRepository {
         password: user.getPassword(),
         name: user.getName(),
         role: user.getRole(),
+        isActive: user.getIsActive(),
       },
     });
 
@@ -59,6 +62,7 @@ export class AuthRepositoryAdapter implements IAuthRepository {
       password: created.password,
       name: created.name,
       role: created.role as any,
+      isActive: created.isActive,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
     });

@@ -12,6 +12,7 @@ export class UserEntity {
   password: Password;
   name: string;
   role: UserRole;
+  isActive: boolean = true;
   createdAt: Date;
   updatedAt: Date;
 
@@ -19,7 +20,8 @@ export class UserEntity {
     email: Email,
     password: Password,
     name: string,
-    role: UserRole = UserRole.USER
+    role: UserRole = UserRole.USER,
+    isActive: boolean = true,
   ) {
     this.validateName(name);
 
@@ -28,6 +30,7 @@ export class UserEntity {
     this.password = password;
     this.name = name.trim().replace(/\s+/g, ' ');
     this.role = role;
+    this.isActive = isActive;
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
@@ -38,6 +41,7 @@ export class UserEntity {
   getPassword(): string { return this.password.getValue(); }
   getName(): string { return this.name; }
   getRole(): UserRole { return this.role; }
+  getIsActive(): boolean { return this.isActive; }
   getCreatedAt(): Date { return this.createdAt; }
   getUpdatedAt(): Date { return this.updatedAt; }
 
@@ -67,6 +71,7 @@ export class UserEntity {
     password: string;
     name: string;
     role: UserRole;
+    isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
   }): UserEntity {
@@ -75,6 +80,7 @@ export class UserEntity {
       new Password(data.password, true),
       data.name,
       data.role,
+      data.isActive,
     );
     user.id = data.id;
     user.createdAt = data.createdAt;
@@ -103,6 +109,7 @@ export class UserEntity {
       email: this.email,
       name: this.name,
       role: this.role,
+      isActive: this.isActive,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

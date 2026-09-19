@@ -18,6 +18,10 @@ import { DepositModule } from './deposit.module';
 import { WithdrawalModule } from './withdrawal.module';
 import { CreateAccountUseCase } from '@/core/auth/application/use-cases/create-account.use-case';
 import { CREATE_ACCOUNT_USE_CASE } from '@/core/auth/application/ports/create-account.port';
+import { GET_USERS_USE_CASE } from '@/core/auth/application/ports/get-users.port';
+import { GetUsersUseCase } from '@/core/auth/application/use-cases/get-users.use-case';
+import { UPDATE_USER_USE_CASE } from '@/core/auth/application/ports/update-user.port';
+import { UpdateUserUseCase } from '@/core/auth/application/use-cases/update-user.use-case';
 
 @Module({
   imports: [
@@ -71,6 +75,14 @@ import { CREATE_ACCOUNT_USE_CASE } from '@/core/auth/application/ports/create-ac
     {
       provide: CREATE_ACCOUNT_USE_CASE,
       useClass: CreateAccountUseCase,
+    },
+    {
+      provide: GET_USERS_USE_CASE,
+      useClass: GetUsersUseCase,
+    },
+    {
+      provide: UPDATE_USER_USE_CASE,
+      useClass: UpdateUserUseCase,
     },
   ],
 })
