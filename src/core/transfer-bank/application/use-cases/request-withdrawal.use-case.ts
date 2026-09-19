@@ -25,6 +25,10 @@ export class RequestWithdrawalUseCase implements IRequestWithdrawalUseCase {
       throw new NotFoundException(`Account ${dto.accountNumber} not found`);
     }
 
+    if (account.status !== 'ACTIVE') {
+      throw new BadRequestException(`Account is ${account.status}`);
+    }
+
     // 2. Verify account belongs to user
     if (account.userId !== userId) {
       throw new NotFoundException(`Account ${dto.accountNumber} does not belong to you`);

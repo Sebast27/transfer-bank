@@ -24,6 +24,7 @@ model Account {
   id              String   @id @default(cuid())
   accountNumber   String   @unique
   balance         Float    @default(0)
+  status          String   @default("ACTIVE")
   userId          String
   user            User     @relation(fields: [userId], references: [id])
   createdAt       DateTime @default(now())

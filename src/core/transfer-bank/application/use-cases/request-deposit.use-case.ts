@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { IRequestDepositUseCase } from '../ports/request-deposit.port';
 import { IDepositRepository, DEPOSIT_REPOSITORY } from '../../domain/ports/deposit-repository.port';
 import { PrismaService } from '../../../../infrastructure/adapters/prisma/prisma.service';
@@ -20,6 +20,10 @@ export class RequestDepositUseCase implements IRequestDepositUseCase {
 
     if (!account) {
       throw new NotFoundException(`Account ${dto.accountNumber} not found`);
+    }
+
+    if (account.status !== 'ACTIVE') {
+      throw new BadRequestException(`Account is ${account.status}`);
     }
 
     // 2. Verify account belongs to user

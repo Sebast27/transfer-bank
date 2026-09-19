@@ -9,6 +9,8 @@ import { CREATE_ACCOUNT_USE_CASE, ICreateAccountUseCase } from '@/core/auth/appl
 import { GET_USERS_USE_CASE, IGetUsersUseCase } from '@/core/auth/application/ports/get-users.port';
 import { IUpdateUserUseCase, UPDATE_USER_USE_CASE } from '@/core/auth/application/ports/update-user.port';
 import { UpdateUserDto } from '@/core/auth/application/dto/update-user.dto';
+import { IUpdateAccountStatusUseCase, UPDATE_ACCOUNT_STATUS_USE_CASE } from '@/core/transfer-bank/application/ports/update-account-status.port';
+import { UpdateAccountStatusDto } from '@/core/transfer-bank/application/dto/update-account-status.dto';
 
 @ApiTags('admin')
 @ApiBearerAuth('JWT-auth')
@@ -26,6 +28,8 @@ export class AdminController {
     private readonly getUsersUseCase: IGetUsersUseCase,
     @Inject(UPDATE_USER_USE_CASE)
     private readonly updateUserUseCase: IUpdateUserUseCase,
+    @Inject(UPDATE_ACCOUNT_STATUS_USE_CASE)
+    private readonly updateAccountStatusUseCase: IUpdateAccountStatusUseCase,
   ) {}
 
   // ============================================
@@ -103,6 +107,18 @@ export class AdminController {
   async createAccount(@Body() dto: CreateAccountDto) {
     this.logger.log(`🔍 Admin creando cuenta ${dto.accountNumber} para ${dto.userEmail}`);
     return this.createAccountUseCase.execute(dto);
+  }
+
+  @Patch('accounts/:accountNumber/status')
+  @ApiOperation({ summary: 'Congelar/Descongelar/Cerrar una cuenta (ADMIN)' })
+  @ApiResponse({ status: 200, description: 'Estado actualizado' })
+  @ApiResponse({ status: 404, description: 'Cuenta no encontrada' })
+  async updateAccountStatus(
+    @Param('accountNumber') accountNumber: string,
+    @Body() dto: UpdateAccountStatusDto,
+  ) {
+    this.logger.log(`🔍 Admin actualizando estado de cuenta ${accountNumber} a ${dto.status}`);
+    return this.updateAccountStatusUseCase.execute(accountNumber, dto);
   }
 
   // ============================================

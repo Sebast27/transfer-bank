@@ -38,6 +38,10 @@ export class WithdrawalProcessor extends WorkerHost {
         throw new Error(`Withdrawal ${withdrawalId} not found`);
       }
 
+      if (withdrawal.account.status !== 'ACTIVE') {
+        throw new Error(`Account is ${withdrawal.account.status}`);
+      }
+
       // 2. Verify sufficient balance again (safety check)
       if (withdrawal.account.balance < amount) {
         throw new Error(`Insufficient balance. Current: $${withdrawal.account.balance}`);

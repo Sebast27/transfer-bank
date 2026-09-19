@@ -38,6 +38,10 @@ export class DepositProcessor extends WorkerHost {
         throw new Error(`Deposit ${depositId} not found`);
       }
 
+      if (deposit.account.status !== 'ACTIVE') {
+        throw new Error(`Account is ${deposit.account.status}`);
+      }
+
       // 2. Update account balance (atomic)
       await this.prisma.$transaction(async (tx) => {
         await tx.account.update({
