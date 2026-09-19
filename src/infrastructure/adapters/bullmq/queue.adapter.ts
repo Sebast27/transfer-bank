@@ -10,6 +10,7 @@ export class BullMQQueueAdapter implements IQueuePort {
     @InjectQueue('statement-queue') private readonly statementQueue: Queue,
     @InjectQueue('notification-queue') private readonly notificationQueue: Queue,
     @InjectQueue('deposit-queue') private readonly depositQueue: Queue,
+    @InjectQueue('withdrawal-queue') private readonly withdrawalQueue: Queue,
   ) {}
 
   async add(jobName: string, data: any): Promise<void> {
@@ -25,6 +26,8 @@ export class BullMQQueueAdapter implements IQueuePort {
       await this.notificationQueue.add('send-notification', data, options);
     } else if (jobName === 'deposit-queue') {
       await this.depositQueue.add('process-deposit', data, options);
+    } else if (jobName === 'withdrawal-queue') {
+      await this.withdrawalQueue.add('process-withdrawal', data, options);
     } else {
       await this.transferQueue.add(jobName, data, options);
     }

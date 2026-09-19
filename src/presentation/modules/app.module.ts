@@ -15,6 +15,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { AdminController } from '../controllers/admin.controller';
 import { StatementModule } from './statement.module';
 import { DepositModule } from './deposit.module';
+import { WithdrawalModule } from './withdrawal.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { DepositModule } from './deposit.module';
     AuthModule,
     StatementModule,
     DepositModule,
+    WithdrawalModule,
   ],
   controllers: [
     HealthController, 

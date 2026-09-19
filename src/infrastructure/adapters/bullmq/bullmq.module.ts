@@ -10,6 +10,7 @@ import { PdfKitAdapter } from '../pdf/pdfkit.adapter';
 import { EmailAdapter } from '../email/email.adapter';
 import { EMAIL_PORT } from '@/core/transfer-bank/application/ports/email.port';
 import { DepositProcessor } from './deposit.processor';
+import { WithdrawalProcessor } from './withdrawal.processor';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { DepositProcessor } from './deposit.processor';
       { name: 'statement-queue' },
       { name: 'notification-queue' },
       { name: 'deposit-queue' },
+      { name: 'withdrawal-queue' },
     ),
   ],
   providers: [
@@ -25,6 +27,7 @@ import { DepositProcessor } from './deposit.processor';
     StatementProcessor,
     NotificationProcessor,
     DepositProcessor,
+    WithdrawalProcessor,
     {
       provide: QUEUE_PORT,
       useClass: BullMQQueueAdapter,
