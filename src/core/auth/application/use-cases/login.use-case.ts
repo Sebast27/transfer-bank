@@ -33,6 +33,10 @@ export class LoginUseCase implements ILoginUseCase {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!user.getIsActive()) {
+      throw new UnauthorizedException('User account is disabled');
+    }
+
     // 3. Generate tokens
     const tokens = await this.authTokenPort.generateTokens(
       user.getId(),
