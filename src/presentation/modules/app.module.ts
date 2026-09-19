@@ -16,6 +16,8 @@ import { AdminController } from '../controllers/admin.controller';
 import { StatementModule } from './statement.module';
 import { DepositModule } from './deposit.module';
 import { WithdrawalModule } from './withdrawal.module';
+import { CreateAccountUseCase } from '@/core/auth/application/use-cases/create-account.use-case';
+import { CREATE_ACCOUNT_USE_CASE } from '@/core/auth/application/ports/create-account.port';
 
 @Module({
   imports: [
@@ -65,6 +67,10 @@ import { WithdrawalModule } from './withdrawal.module';
     {
       provide: TRANSACTION_SERVICE,
       useClass: ProcessTransferUseCase,
+    },
+    {
+      provide: CREATE_ACCOUNT_USE_CASE,
+      useClass: CreateAccountUseCase,
     },
   ],
 })
