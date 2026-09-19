@@ -24,6 +24,8 @@ import { UPDATE_USER_USE_CASE } from '@/core/auth/application/ports/update-user.
 import { UpdateUserUseCase } from '@/core/auth/application/use-cases/update-user.use-case';
 import { UpdateAccountStatusUseCase } from '@/core/transfer-bank/application/use-cases/update-account-status.use-case';
 import { UPDATE_ACCOUNT_STATUS_USE_CASE } from '@/core/transfer-bank/application/ports/update-account-status.port';
+import { GetAccountTransactionsUseCase } from '@/core/transfer-bank/application/use-cases/get-account-transactions.use-case';
+import { GET_ACCOUNT_TRANSACTIONS_USE_CASE } from '@/core/transfer-bank/application/ports/get-account-transactions.port';
 
 @Module({
   imports: [
@@ -89,6 +91,10 @@ import { UPDATE_ACCOUNT_STATUS_USE_CASE } from '@/core/transfer-bank/application
     {
       provide: UPDATE_ACCOUNT_STATUS_USE_CASE,
       useClass: UpdateAccountStatusUseCase,
+    },
+    {
+      provide: GET_ACCOUNT_TRANSACTIONS_USE_CASE,
+      useClass: GetAccountTransactionsUseCase,
     },
   ],
 })

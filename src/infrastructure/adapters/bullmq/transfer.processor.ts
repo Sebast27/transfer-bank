@@ -43,6 +43,14 @@ export class TransferProcessor extends WorkerHost {
         throw new Error(`Cuenta destino ${toAccountNumber} no encontrada`);
       }
 
+      if (fromAccount.status !== 'ACTIVE') {
+        throw new Error(`Source account is ${fromAccount.status}`);
+      }
+
+      if (toAccount.status !== 'ACTIVE') {
+        throw new Error(`Destination account is ${toAccount.status}`);
+      }
+
       // 2. Validar saldo
       if (fromAccount.balance < amount) {
         throw new Error(`Saldo insuficiente en ${fromAccountNumber}`);

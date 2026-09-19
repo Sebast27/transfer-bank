@@ -1,8 +1,10 @@
-import { Controller, Get, Param, NotFoundException, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Logger, UseGuards, Query, Inject } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/adapters/prisma/prisma.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from '../decorators/user.decorator';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { GetTransactionsQueryDto } from '@/core/transfer-bank/application/dto/get-transactions-query.dto';
+import { GET_ACCOUNT_TRANSACTIONS_USE_CASE, IGetAccountTransactionsUseCase } from '@/core/transfer-bank/application/ports/get-account-transactions.port';
 
 @ApiTags('accounts')
 @ApiBearerAuth('JWT-auth')
@@ -11,7 +13,11 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@ne
 export class AccountController {
   private readonly logger = new Logger(AccountController.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(GET_ACCOUNT_TRANSACTIONS_USE_CASE)
+    private readonly getAccountTransactionsUseCase: IGetAccountTransactionsUseCase,
+  ) {}
 
   @Get(':accountNumber')
   @ApiOperation({ summary: 'Consultar saldo de una cuenta' })
@@ -50,5 +56,20 @@ export class AccountController {
       balance: account.balance,
       updatedAt: account.updatedAt,
     };
+  }
+
+  @Get(':accountNumber/transactions')
+  @ApiOperation({ summary: 'Consultar historial de transacciones de una cuenta' })
+  @ApiParam({ name: 'accountNumber', example: 'ACC-001' })
+  @ApiResponse({ status: 200, description: 'Historial de transacciones' })
+  @ApiResponse({ status: 404, description: 'Cuenta no encontrada' })
+  @ApiResponse({ status: 403, description: 'No tienes acceso a esta cuenta' })
+  async getTransactions(
+    @Param('accountNumber') accountNumber: string,
+    @Query() filters: GetTransactionsQueryDto,
+    @User() user: any,
+  ) {
+    this.logger.log(`🔍 Usuario ${user.email} consulta transacciones de: ${accountNumber}`);
+    return this.getAccountTransactionsUseCase.execute(accountNumber, user.id, filters);
   }
 }
