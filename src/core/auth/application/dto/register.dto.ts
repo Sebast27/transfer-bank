@@ -7,20 +7,20 @@ export enum UserRole {
 }
 
 export class RegisterDto {
-  @ApiProperty({ example: 'user@test.com', description: 'Email del usuario' })
+  @ApiProperty({ example: 'user@test.com', description: 'Users email' })
   @IsEmail()
   email!: string;
-  
-  @ApiProperty({ example: 'password123', description: 'Contraseña del usuario' })
+
+  @ApiProperty({ example: 'password123', description: 'Users password' })
   @IsString()
   @MinLength(8)
   password!: string;
 
-  @ApiProperty({ example: 'John Doe', description: 'Nombre completo del usuario' })
+  @ApiProperty({ example: 'John Doe', description: 'Users full name' })
   @IsString()
   name!: string;
 
-  @ApiProperty({ example: 'USER', description: 'Rol del usuario' })
+  @ApiProperty({ example: 'USER', description: 'Users role' })
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;

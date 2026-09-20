@@ -7,23 +7,23 @@ export enum UserRole {
 }
 
 export class UpdateUserDto {
-  @ApiPropertyOptional({ example: 'Juan Pérez', description: 'Nombre completo' })
+  @ApiPropertyOptional({ example: 'Juan Pérez', description: 'User full name' })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({ example: 'newpassword123!', description: 'Nueva contraseña' })
+  @ApiPropertyOptional({ example: 'newpassword123!', description: 'New password' })
   @IsString()
   @MinLength(6)
   @IsOptional()
   password?: string;
 
-  @ApiPropertyOptional({ enum: UserRole, description: 'Rol del usuario' })
+  @ApiPropertyOptional({ enum: UserRole, description: 'User role' })
   @IsEnum(UserRole)
   @IsOptional()
   role?: UserRole;
 
-  @ApiPropertyOptional({ example: true, description: 'Usuario activo' })
+  @ApiPropertyOptional({ example: true, description: 'User is active' })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

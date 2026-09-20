@@ -1,29 +1,32 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IUpdateUserUseCase } from '../ports/update-user.port';
-import { PrismaService } from '../../../../infrastructure/adapters/prisma/prisma.service';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import * as bcrypt from 'bcrypt';
+import { IUserRepository, USER_REPOSITORY } from '../../domain/ports/user-repository.port';
+import { AUTH_HASH_PORT, IAuthHashPort } from '../ports/auth-hash.port';
 
 @Injectable()
 export class UpdateUserUseCase implements IUpdateUserUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
+    @Inject(AUTH_HASH_PORT)
+    private readonly authHashPort: IAuthHashPort,
+  ) { }
 
   async execute(userId: string, dto: UpdateUserDto) {
     // 1. Check if user exists
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.userRepository.findById(userId);
 
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
 
-    // No se puede actualizar un ADMIN
+    // 2. Check if user is ADMIN
     if (user.role === 'ADMIN') {
       throw new ForbiddenException('Cannot update an ADMIN user');
     }
 
-    // 2. Prepare update data
+    // 3. Prepare update data
     const updateData: any = {};
 
     if (dto.name !== undefined) {
@@ -31,7 +34,7 @@ export class UpdateUserUseCase implements IUpdateUserUseCase {
     }
 
     if (dto.password !== undefined) {
-      updateData.password = await bcrypt.hash(dto.password, 10);
+      updateData.password = await this.authHashPort.hash(dto.password);
     }
 
     if (dto.role !== undefined) {
@@ -42,11 +45,8 @@ export class UpdateUserUseCase implements IUpdateUserUseCase {
       updateData.isActive = dto.isActive;
     }
 
-    // 3. Update user
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-    });
+    // 4. Update user
+    const updatedUser = await this.userRepository.update(userId, updateData);
 
     return {
       id: updatedUser.id,

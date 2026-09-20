@@ -1,38 +1,42 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { IAuthRepository, AUTH_REPOSITORY } from '../ports/auth-repository.port';
 import { IRefreshUseCase } from '../ports/refresh.port';
+import { AUTH_TOKEN_PORT, IAuthTokenPort } from '../ports/auth-token.port';
 
 @Injectable()
 export class RefreshTokenUseCase implements IRefreshUseCase {
   constructor(
     @Inject(AUTH_REPOSITORY)
     private readonly authRepository: IAuthRepository,
-    private readonly jwtService: JwtService,
-  ) {}
+    @Inject(AUTH_TOKEN_PORT)
+    private readonly authTokenPort: IAuthTokenPort,
+  ) { }
 
   async execute(refreshToken: string): Promise<{ accessToken: string }> {
     try {
       // 1. Verify the refresh token
-      const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
-      });
+      const payload = await this.authTokenPort.verifyRefreshToken(refreshToken);
+
+      if (!payload) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
 
       // 2. Verify that the user exists
-      const user = await this.authRepository.findById(payload.sub);
+      const user = await this.authRepository.findById(payload.userId);
       if (!user) {
-        throw new UnauthorizedException('Usuario no encontrado');
+        throw new UnauthorizedException('User not found');
       }
 
       // 3. Generate new access token
-      const accessToken = this.jwtService.sign(
-        { sub: user.getId(), email: user.getEmail(), role: user.getRole() },
-        { secret: process.env.JWT_SECRET || 'secret', expiresIn: '1h' },
+      const accessToken = await this.authTokenPort.generateTokens(
+        user.getId(),
+        user.getEmail(),
+        user.getRole()
       );
 
-      return { accessToken };
+      return { accessToken: accessToken.accessToken };
     } catch (error) {
-      throw new UnauthorizedException('Refresh token inválido o expirado');
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 }

@@ -6,7 +6,6 @@ import { UserEntity } from '../../domain/entities/user.entity';
 import { Email } from '../../domain/value-objects/email.vo';
 import { Password } from '../../domain/value-objects/password.vo';
 import { AUTH_HASH_PORT, IAuthHashPort } from '../ports/auth-hash.port';
-import { UserMapper } from '../mappers/user.mapper';
 
 @Injectable()
 export class RegisterUseCase {
@@ -17,7 +16,7 @@ export class RegisterUseCase {
     private readonly authTokenPort: IAuthTokenPort,
     @Inject(AUTH_HASH_PORT)
     private readonly authHashPort: IAuthHashPort
-  ) {}
+  ) { }
 
   async execute(registerDto: RegisterDto) {
     // 1. Check if user already exists

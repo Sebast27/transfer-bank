@@ -6,4 +6,5 @@ export interface IAuthTokenPort {
     refreshToken: string;
   }>;
   verifyToken(token: string): Promise<{ userId: string; email: string; role: string }>;
+  verifyRefreshToken(token: string): Promise<{ userId: string; email: string; role: string }>;
 }

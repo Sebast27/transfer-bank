@@ -1,23 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { IGetUsersUseCase } from '../ports/get-users.port';
-import { PrismaService } from '../../../../infrastructure/adapters/prisma/prisma.service';
+import { IUserRepository, USER_REPOSITORY } from '../../domain/ports/user-repository.port';
 
 @Injectable()
 export class GetUsersUseCase implements IGetUsersUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
+  ) { }
 
   async execute() {
-    const users = await this.prisma.user.findMany({
-      include: {
-        accounts: {
-          select: {
-            accountNumber: true,
-            balance: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const users = await this.userRepository.findAll();
 
     return users.map((user) => ({
       id: user.id,
