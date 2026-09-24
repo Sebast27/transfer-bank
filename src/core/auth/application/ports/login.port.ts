@@ -1,5 +1,5 @@
-import { LoginDto } from '../dto/login.dto';
 import { UserEntity } from '../../domain/entities/user.entity';
+import { LoginDto } from '../dto/login.dto';
 
 export const LOGIN_USE_CASE = 'LOGIN_USE_CASE';
 

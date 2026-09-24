@@ -1,7 +1,7 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { IAuthRepository, AUTH_REPOSITORY } from '../ports/auth-repository.port';
-import { IRefreshUseCase } from '../ports/refresh.port';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { AUTH_REPOSITORY, IAuthRepository } from '../../domain/ports/auth-repository.port';
 import { AUTH_TOKEN_PORT, IAuthTokenPort } from '../ports/auth-token.port';
+import { IRefreshUseCase } from '../ports/refresh.port';
 
 @Injectable()
 export class RefreshTokenUseCase implements IRefreshUseCase {

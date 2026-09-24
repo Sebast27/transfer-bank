@@ -1,7 +1,7 @@
-import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
-import { UserResponseDto } from '../dto/user-response.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { RegisterDto } from '../dto/register.dto';
+import { UserResponseDto } from '../dto/user-response.dto';
 
 export const AUTH_SERVICE = 'AUTH_SERVICE';
 

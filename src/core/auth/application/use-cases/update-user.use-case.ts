@@ -1,8 +1,8 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { IUpdateUserUseCase } from '../ports/update-user.port';
-import { UpdateUserDto } from '../dto/update-user.dto';
 import { IUserRepository, USER_REPOSITORY } from '../../domain/ports/user-repository.port';
+import { UpdateUserDto } from '../dto/update-user.dto';
 import { AUTH_HASH_PORT, IAuthHashPort } from '../ports/auth-hash.port';
+import { IUpdateUserUseCase } from '../ports/update-user.port';
 
 @Injectable()
 export class UpdateUserUseCase implements IUpdateUserUseCase {

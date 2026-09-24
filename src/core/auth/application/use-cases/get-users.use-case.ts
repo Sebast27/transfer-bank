@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { IGetUsersUseCase } from '../ports/get-users.port';
 import { IUserRepository, USER_REPOSITORY } from '../../domain/ports/user-repository.port';
+import { IGetUsersUseCase } from '../ports/get-users.port';
 
 @Injectable()
 export class GetUsersUseCase implements IGetUsersUseCase {

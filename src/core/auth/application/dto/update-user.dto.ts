@@ -1,5 +1,5 @@
-import { IsString, IsOptional, IsBoolean, IsEnum, MinLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 
 export enum UserRole {
   USER = 'USER',

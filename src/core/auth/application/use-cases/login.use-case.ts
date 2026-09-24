@@ -1,8 +1,8 @@
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
-import { IAuthRepository, AUTH_REPOSITORY } from '../ports/auth-repository.port';
-import { IAuthTokenPort, AUTH_TOKEN_PORT } from '../ports/auth-token.port';
-import { IAuthHashPort, AUTH_HASH_PORT } from '../ports/auth-hash.port';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { AUTH_REPOSITORY, IAuthRepository } from '../../domain/ports/auth-repository.port';
 import { LoginDto } from '../dto/login.dto';
+import { AUTH_HASH_PORT, IAuthHashPort } from '../ports/auth-hash.port';
+import { AUTH_TOKEN_PORT, IAuthTokenPort } from '../ports/auth-token.port';
 import { ILoginUseCase } from '../ports/login.port';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class LoginUseCase implements ILoginUseCase {
     private readonly authTokenPort: IAuthTokenPort,
     @Inject(AUTH_HASH_PORT)
     private readonly authHashPort: IAuthHashPort,
-  ) {}
+  ) { }
 
   async execute(loginDto: LoginDto) {
     // 1. Find user by email

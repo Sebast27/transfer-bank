@@ -1,11 +1,11 @@
-import { Injectable, Inject, ConflictException } from '@nestjs/common';
-import { AUTH_REPOSITORY, IAuthRepository } from '../ports/auth-repository.port';
-import { AUTH_TOKEN_PORT, IAuthTokenPort } from '../ports/auth-token.port';
-import { RegisterDto } from '../dto/register.dto';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { UserEntity } from '../../domain/entities/user.entity';
+import { AUTH_REPOSITORY, IAuthRepository } from '../../domain/ports/auth-repository.port';
 import { Email } from '../../domain/value-objects/email.vo';
 import { Password } from '../../domain/value-objects/password.vo';
+import { RegisterDto } from '../dto/register.dto';
 import { AUTH_HASH_PORT, IAuthHashPort } from '../ports/auth-hash.port';
+import { AUTH_TOKEN_PORT, IAuthTokenPort } from '../ports/auth-token.port';
 
 @Injectable()
 export class RegisterUseCase {
