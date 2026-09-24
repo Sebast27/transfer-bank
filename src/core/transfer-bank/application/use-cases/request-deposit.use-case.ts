@@ -1,22 +1,21 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { IRequestDepositUseCase } from '../ports/request-deposit.port';
-import { IDepositRepository, DEPOSIT_REPOSITORY } from '../../domain/ports/deposit-repository.port';
-import { PrismaService } from '../../../../infrastructure/adapters/prisma/prisma.service';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ACCOUNT_REPOSITORY, IAccountRepository } from '../../domain/ports/account-repository.port';
+import { DEPOSIT_REPOSITORY, IDepositRepository } from '../../domain/ports/deposit-repository.port';
 import { RequestDepositDto } from '../dto/request-deposit.dto';
+import { IRequestDepositUseCase } from '../ports/request-deposit.port';
 
 @Injectable()
 export class RequestDepositUseCase implements IRequestDepositUseCase {
   constructor(
     @Inject(DEPOSIT_REPOSITORY)
     private readonly depositRepository: IDepositRepository,
-    private readonly prisma: PrismaService,
-  ) {}
+    @Inject(ACCOUNT_REPOSITORY)
+    private readonly accountRepository: IAccountRepository
+  ) { }
 
   async execute(dto: RequestDepositDto, userId: string) {
     // 1. Find account
-    const account = await this.prisma.account.findUnique({
-      where: { accountNumber: dto.accountNumber },
-    });
+    const account = await this.accountRepository.findByNumber(dto.accountNumber);
 
     if (!account) {
       throw new NotFoundException(`Account ${dto.accountNumber} not found`);

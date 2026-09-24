@@ -1,9 +1,9 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
-import { IRequestWithdrawalUseCase } from '../ports/request-withdrawal.port';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ACCOUNT_REPOSITORY, IAccountRepository } from '../../domain/ports/account-repository.port';
 import { IWithdrawalRepository, WITHDRAWAL_REPOSITORY } from '../../domain/ports/withdrawal-repository.port';
-import { IQueuePort, QUEUE_PORT } from '../ports/queue.port';
-import { PrismaService } from '../../../../infrastructure/adapters/prisma/prisma.service';
 import { RequestWithdrawalDto } from '../dto/request-withdrawal.dto';
+import { IQueuePort, QUEUE_PORT } from '../ports/queue.port';
+import { IRequestWithdrawalUseCase } from '../ports/request-withdrawal.port';
 
 @Injectable()
 export class RequestWithdrawalUseCase implements IRequestWithdrawalUseCase {
@@ -12,14 +12,13 @@ export class RequestWithdrawalUseCase implements IRequestWithdrawalUseCase {
     private readonly withdrawalRepository: IWithdrawalRepository,
     @Inject(QUEUE_PORT)
     private readonly queuePort: IQueuePort,
-    private readonly prisma: PrismaService,
-  ) {}
+    @Inject(ACCOUNT_REPOSITORY)
+    private readonly accountRepository: IAccountRepository
+  ) { }
 
   async execute(dto: RequestWithdrawalDto, userId: string) {
     // 1. Find account
-    const account = await this.prisma.account.findUnique({
-      where: { accountNumber: dto.accountNumber },
-    });
+    const account = await this.accountRepository.findByNumber(dto.accountNumber);
 
     if (!account) {
       throw new NotFoundException(`Account ${dto.accountNumber} not found`);

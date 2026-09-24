@@ -1,6 +1,6 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { DEPOSIT_REPOSITORY, IDepositRepository } from '../../domain/ports/deposit-repository.port';
 import { IApproveDepositUseCase } from '../ports/approve-deposit.port';
-import { IDepositRepository, DEPOSIT_REPOSITORY } from '../../domain/ports/deposit-repository.port';
 import { IQueuePort, QUEUE_PORT } from '../ports/queue.port';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class ApproveDepositUseCase implements IApproveDepositUseCase {
     private readonly depositRepository: IDepositRepository,
     @Inject(QUEUE_PORT)
     private readonly queuePort: IQueuePort,
-  ) {}
+  ) { }
 
   async execute(depositId: string, adminId: string) {
     // 1. Find deposit

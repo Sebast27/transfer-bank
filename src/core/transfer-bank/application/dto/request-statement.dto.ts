@@ -1,18 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class RequestStatementDto {
-  @ApiProperty({ example: 'ACC-001', description: 'Número de cuenta' })
+  @ApiProperty({ example: 'ACC-001', description: 'Account number' })
   @IsString()
   @IsNotEmpty()
   accountNumber!: string;
 
-  @ApiProperty({ example: '2024-01-01', description: 'Fecha de inicio del período' })
+  @ApiProperty({ example: '2024-01-01', description: 'Start date of the period' })
   @IsDateString()
   @IsNotEmpty()
   periodStart!: string;
 
-  @ApiProperty({ example: '2024-01-31', description: 'Fecha de fin del período' })
+  @ApiProperty({ example: '2024-01-31', description: 'End date of the period' })
   @IsDateString()
   @IsNotEmpty()
   periodEnd!: string;

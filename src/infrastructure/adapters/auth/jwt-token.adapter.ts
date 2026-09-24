@@ -4,18 +4,20 @@ import { IAuthTokenPort } from '../../../core/auth/application/ports/auth-token.
 
 @Injectable()
 export class JwtTokenAdapter implements IAuthTokenPort {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   async generateTokens(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
-    
+
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, { 
+      this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET || 'secret',
-        expiresIn: '1h' }),
-      this.jwtService.signAsync(payload, { 
+        expiresIn: '1h'
+      }),
+      this.jwtService.signAsync(payload, {
         secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
-        expiresIn: '7d' }),
+        expiresIn: '7d'
+      }),
     ]);
 
     return { accessToken, refreshToken };
@@ -25,10 +27,21 @@ export class JwtTokenAdapter implements IAuthTokenPort {
     const payload = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET || 'secret',
     });
-    return { 
-      userId: payload.sub, 
-      email: payload.email, 
-      role: payload.role 
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role
+    };
+  }
+
+  async verifyRefreshToken(token: string) {
+    const payload = this.jwtService.verify(token, {
+      secret: process.env.JWT_REFRESH_SECRET || 'refresh-secret',
+    });
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role,
     };
   }
 }

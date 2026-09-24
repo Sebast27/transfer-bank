@@ -47,7 +47,7 @@ export class Transaction {
   get createdAt(): Date { return this._createdAt; }
   get completedAt(): Date | undefined { return this._completedAt; }
 
-  // Métodos de negocio
+  // Business logic methods
   isPending(): boolean {
     return this._status === TransactionStatus.PENDING;
   }

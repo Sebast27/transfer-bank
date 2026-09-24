@@ -16,8 +16,6 @@ import { AdminController } from '../controllers/admin.controller';
 import { StatementModule } from './statement.module';
 import { DepositModule } from './deposit.module';
 import { WithdrawalModule } from './withdrawal.module';
-import { CreateAccountUseCase } from '@/core/auth/application/use-cases/create-account.use-case';
-import { CREATE_ACCOUNT_USE_CASE } from '@/core/auth/application/ports/create-account.port';
 import { GET_USERS_USE_CASE } from '@/core/auth/application/ports/get-users.port';
 import { GetUsersUseCase } from '@/core/auth/application/use-cases/get-users.use-case';
 import { UPDATE_USER_USE_CASE } from '@/core/auth/application/ports/update-user.port';
@@ -26,6 +24,12 @@ import { UpdateAccountStatusUseCase } from '@/core/transfer-bank/application/use
 import { UPDATE_ACCOUNT_STATUS_USE_CASE } from '@/core/transfer-bank/application/ports/update-account-status.port';
 import { GetAccountTransactionsUseCase } from '@/core/transfer-bank/application/use-cases/get-account-transactions.use-case';
 import { GET_ACCOUNT_TRANSACTIONS_USE_CASE } from '@/core/transfer-bank/application/ports/get-account-transactions.port';
+import { ACCOUNT_REPOSITORY } from '@/core/transfer-bank/domain/ports/account-repository.port';
+import { PrismaAccountRepository } from '@/infrastructure/adapters/prisma/account-repository.prisma';
+import { CREATE_ACCOUNT_USE_CASE } from '@/core/transfer-bank/application/ports/create-account.port';
+import { CreateAccountUseCase } from '@/core/transfer-bank/application/use-cases/create-account.use-case';
+import { PrismaTransactionHistoryRepository } from '@/infrastructure/adapters/prisma/transaction-history-repository.prisma';
+import { TRANSACTION_HISTORY_REPOSITORY } from '@/core/transfer-bank/application/ports/transaction-history-repository.port';
 
 @Module({
   imports: [
@@ -62,15 +66,19 @@ import { GET_ACCOUNT_TRANSACTIONS_USE_CASE } from '@/core/transfer-bank/applicat
     WithdrawalModule,
   ],
   controllers: [
-    HealthController, 
-    TransferController, 
-    AccountController, 
-    AuthController, 
+    HealthController,
+    TransferController,
+    AccountController,
+    AuthController,
     AdminController],
   providers: [
     {
       provide: TRANSACTION_REPOSITORY,
       useClass: PrismaTransactionRepository,
+    },
+    {
+      provide: TRANSACTION_HISTORY_REPOSITORY,
+      useClass: PrismaTransactionHistoryRepository,
     },
     {
       provide: TRANSACTION_SERVICE,
@@ -96,6 +104,10 @@ import { GET_ACCOUNT_TRANSACTIONS_USE_CASE } from '@/core/transfer-bank/applicat
       provide: GET_ACCOUNT_TRANSACTIONS_USE_CASE,
       useClass: GetAccountTransactionsUseCase,
     },
+    {
+      provide: ACCOUNT_REPOSITORY,
+      useClass: PrismaAccountRepository,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule { }
