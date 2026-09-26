@@ -5,10 +5,14 @@ import { UpdateUserUseCase } from '@/core/auth/application/use-cases/update-user
 import { CREATE_ACCOUNT_USE_CASE } from '@/core/transfer-bank/application/ports/create-account.port';
 import { GET_ACCOUNT_BALANCE_USE_CASE } from '@/core/transfer-bank/application/ports/get-account-balance.port';
 import { GET_ACCOUNT_TRANSACTIONS_USE_CASE } from '@/core/transfer-bank/application/ports/get-account-transactions.port';
+import { GET_ALL_ACCOUNTS_USE_CASE } from '@/core/transfer-bank/application/ports/get-all-accounts.port';
+import { GET_ALL_TRANSFERS_USE_CASE } from '@/core/transfer-bank/application/ports/get-all-transfers.port';
 import { UPDATE_ACCOUNT_STATUS_USE_CASE } from '@/core/transfer-bank/application/ports/update-account-status.port';
 import { CreateAccountUseCase } from '@/core/transfer-bank/application/use-cases/create-account.use-case';
 import { GetAccountBalanceUseCase } from '@/core/transfer-bank/application/use-cases/get-account-balance.use-case';
 import { GetAccountTransactionsUseCase } from '@/core/transfer-bank/application/use-cases/get-account-transactions.use-case';
+import { GetAllAccountsUseCase } from '@/core/transfer-bank/application/use-cases/get-all-accounts.use-case';
+import { GetAllTransfersUseCase } from '@/core/transfer-bank/application/use-cases/get-all-transfers.use-case';
 import { UpdateAccountStatusUseCase } from '@/core/transfer-bank/application/use-cases/update-account-status.use-case';
 import { ACCOUNT_REPOSITORY } from '@/core/transfer-bank/domain/ports/account-repository.port';
 import { TRANSACTION_HISTORY_REPOSITORY } from '@/core/transfer-bank/domain/ports/transaction-history-repository.port';
@@ -97,6 +101,14 @@ import { WithdrawalModule } from './withdrawal.module';
     {
       provide: GET_USERS_USE_CASE,
       useClass: GetUsersUseCase,
+    },
+    {
+      provide: GET_ALL_TRANSFERS_USE_CASE,
+      useClass: GetAllTransfersUseCase,
+    },
+    {
+      provide: GET_ALL_ACCOUNTS_USE_CASE,
+      useClass: GetAllAccountsUseCase,
     },
     {
       provide: UPDATE_USER_USE_CASE,

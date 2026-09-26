@@ -1,6 +1,16 @@
 export const ACCOUNT_REPOSITORY = 'ACCOUNT_REPOSITORY';
 
 export interface IAccountRepository {
+  findAll(): Promise<Array<{
+    accountNumber: string;
+    balance: number;
+    owner: {
+      email: string;
+      name: string;
+    };
+    updatedAt: Date;
+  }>>;
+
   findByNumber(accountNumber: string): Promise<{
     id: string;
     accountNumber: string;

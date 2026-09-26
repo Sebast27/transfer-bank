@@ -96,6 +96,27 @@ export class PrismaTransactionRepository implements ITransactionRepository {
     });
   }
 
+  async findAll() {
+    const transfers = await this.prisma.transaction.findMany({
+      include: {
+        fromAccount: { select: { accountNumber: true } },
+        toAccount: { select: { accountNumber: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return transfers.map((t) => ({
+      id: t.id,
+      fromAccount: t.fromAccount.accountNumber,
+      toAccount: t.toAccount.accountNumber,
+      amount: t.amount,
+      status: t.status,
+      reference: t.reference,
+      createdAt: t.createdAt,
+      completedAt: t.completedAt,
+    }));
+  }
+
   async completeTransfer(
     transactionId: string,
     fromAccountId: string,

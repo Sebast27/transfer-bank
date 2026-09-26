@@ -6,6 +6,27 @@ import { PrismaService } from './prisma.service';
 export class PrismaAccountRepository implements IAccountRepository {
   constructor(private readonly prisma: PrismaService) { }
 
+  async findAll() {
+    const accounts = await this.prisma.account.findMany({
+      include: {
+        user: {
+          select: { email: true, name: true },
+        },
+      },
+      orderBy: { accountNumber: 'asc' },
+    });
+
+    return accounts.map((a) => ({
+      accountNumber: a.accountNumber,
+      balance: a.balance,
+      owner: {
+        email: a.user.email,
+        name: a.user.name,
+      },
+      updatedAt: a.updatedAt,
+    }));
+  }
+
   async findByNumber(accountNumber: string) {
     const account = await this.prisma.account.findUnique({
       where: { accountNumber },
