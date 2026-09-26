@@ -1,9 +1,9 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Inject } from '@nestjs/common';
-import { RegisterDto } from '../../core/auth/application/dto/register.dto';
-import { LoginDto } from '../../core/auth/application/dto/login.dto';
-import { AUTH_SERVICE, IAuthService } from '../../core/auth/application/ports/auth-service.port';
-import { RefreshTokenDto } from '@/core/auth/application/dto/refresh-token.dto';
+import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { LoginDto } from '../../core/auth/application/dto/login.dto';
+import { RefreshTokenDto } from '../../core/auth/application/dto/refresh-token.dto';
+import { RegisterDto } from '../../core/auth/application/dto/register.dto';
+import { AUTH_SERVICE, IAuthService } from '../../core/auth/application/ports/auth-service.port';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -11,7 +11,7 @@ export class AuthController {
   constructor(
     @Inject(AUTH_SERVICE)
     private readonly authService: IAuthService,
-  ) {}
+  ) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar nuevo usuario' })

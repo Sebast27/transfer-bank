@@ -1,25 +1,25 @@
 import {
-  Controller,
-  Post,
-  Get,
+  BadRequestException,
   Body,
-  Param,
-  UseGuards,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
-  Res,
   NotFoundException,
-  BadRequestException,
+  Param,
+  Post,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { User } from '../decorators/user.decorator';
-import { IGenerateStatementUseCase, GENERATE_STATEMENT_USE_CASE } from '../../core/transfer-bank/application/ports/generate-statement.port';
-import { IStatementRepository, STATEMENT_REPOSITORY } from '../../core/transfer-bank/domain/ports/statement-repository.port';
-import { RequestStatementDto } from '../../core/transfer-bank/application/dto/request-statement.dto';
-import * as fs from 'fs';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import * as fs from 'fs';
+import { RequestStatementDto } from '../../core/transfer-bank/application/dto/request-statement.dto';
+import { GENERATE_STATEMENT_USE_CASE, IGenerateStatementUseCase } from '../../core/transfer-bank/application/ports/generate-statement.port';
+import { IStatementRepository, STATEMENT_REPOSITORY } from '../../core/transfer-bank/domain/ports/statement-repository.port';
+import { User } from '../decorators/user.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('statements')
 @ApiBearerAuth('JWT-auth')
@@ -31,7 +31,7 @@ export class StatementController {
     private readonly generateStatementUseCase: IGenerateStatementUseCase,
     @Inject(STATEMENT_REPOSITORY)
     private readonly statementRepository: IStatementRepository,
-  ) {}
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
