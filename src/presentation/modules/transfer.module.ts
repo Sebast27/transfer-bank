@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { GET_ACCOUNT_BALANCE_USE_CASE } from '../../core/transfer-bank/application/ports/get-account-balance.port';
 import { GET_ACCOUNT_TRANSACTIONS_USE_CASE } from '../../core/transfer-bank/application/ports/get-account-transactions.port';
-import { TRANSACTION_SERVICE } from '../../core/transfer-bank/application/ports/transaction-service.port';
+import { GET_TRANSFER_STATUS_USE_CASE } from '../../core/transfer-bank/application/ports/get-transfer-status.port';
+import { PROCESS_TRANSFER_USE_CASE } from '../../core/transfer-bank/application/ports/process-transfer.port';
 import { GetAccountBalanceUseCase } from '../../core/transfer-bank/application/use-cases/get-account-balance.use-case';
 import { GetAccountTransactionsUseCase } from '../../core/transfer-bank/application/use-cases/get-account-transactions.use-case';
+import { GetTransferStatusUseCase } from '../../core/transfer-bank/application/use-cases/get-transfer-status.use-case';
 import { ProcessTransferUseCase } from '../../core/transfer-bank/application/use-cases/process-transfer.use-case';
 import { ACCOUNT_REPOSITORY } from '../../core/transfer-bank/domain/ports/account-repository.port';
 import { TRANSACTION_HISTORY_REPOSITORY } from '../../core/transfer-bank/domain/ports/transaction-history-repository.port';
@@ -24,8 +26,10 @@ import { TransferController } from '../controllers/transfer.controller';
         { provide: ACCOUNT_REPOSITORY, useClass: PrismaAccountRepository },
         { provide: TRANSACTION_REPOSITORY, useClass: PrismaTransactionRepository },
         { provide: TRANSACTION_HISTORY_REPOSITORY, useClass: PrismaTransactionHistoryRepository },
+
         // Use cases
-        { provide: TRANSACTION_SERVICE, useClass: ProcessTransferUseCase },
+        { provide: PROCESS_TRANSFER_USE_CASE, useClass: ProcessTransferUseCase },
+        { provide: GET_TRANSFER_STATUS_USE_CASE, useClass: GetTransferStatusUseCase },
         { provide: GET_ACCOUNT_BALANCE_USE_CASE, useClass: GetAccountBalanceUseCase },
         { provide: GET_ACCOUNT_TRANSACTIONS_USE_CASE, useClass: GetAccountTransactionsUseCase },
     ],

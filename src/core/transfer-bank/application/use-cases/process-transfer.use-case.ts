@@ -3,11 +3,11 @@ import { Transaction } from '../../domain/entities/transaction.entity';
 import { ITransactionRepository, TRANSACTION_REPOSITORY } from '../../domain/ports/transaction-repository.port';
 import { Money } from '../../domain/value-objects/money.vo';
 import { TransferDto } from '../dto/transfer.dto';
+import { IProcessTransferUseCase } from '../ports/process-transfer.port';
 import { IQueuePort, QUEUE_PORT } from '../ports/queue.port';
-import { ITransactionService } from '../ports/transaction-service.port';
 
 @Injectable()
-export class ProcessTransferUseCase implements ITransactionService {
+export class ProcessTransferUseCase implements IProcessTransferUseCase {
   constructor(
     @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepository: ITransactionRepository,
@@ -15,7 +15,7 @@ export class ProcessTransferUseCase implements ITransactionService {
     private readonly queuePort: IQueuePort,
   ) { }
 
-  async transfer(dto: TransferDto): Promise<{ transactionId: string; status: string }> {
+  async execute(dto: TransferDto): Promise<{ transactionId: string; status: string }> {
     // 1. validate the transfer data
     this.validateTransfer(dto);
 
@@ -49,14 +49,6 @@ export class ProcessTransferUseCase implements ITransactionService {
       transactionId: saved.id,
       status: saved.status,
     };
-  }
-
-  async getStatus(id: string): Promise<any> {
-    const transaction = await this.transactionRepository.findById(id);
-    if (!transaction) {
-      return { message: 'Transaction not found', statusCode: 404 };
-    }
-    return transaction.toJSON();
   }
 
   // Validates the transfer data according to business rules
