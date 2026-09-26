@@ -1,10 +1,11 @@
-import { Controller, Get, Param, NotFoundException, Logger, UseGuards, Query, Inject } from '@nestjs/common';
-import { PrismaService } from '../../infrastructure/adapters/prisma/prisma.service';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { User } from '../decorators/user.decorator';
+import { Controller, Get, Inject, Logger, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { GetTransactionsQueryDto } from '@/core/transfer-bank/application/dto/get-transactions-query.dto';
-import { GET_ACCOUNT_TRANSACTIONS_USE_CASE, IGetAccountTransactionsUseCase } from '@/core/transfer-bank/application/ports/get-account-transactions.port';
+import { GetTransactionsQueryDto } from '../../core/transfer-bank/application/dto/get-transactions-query.dto';
+import { GET_ACCOUNT_BALANCE_USE_CASE, IGetAccountBalanceUseCase } from '../../core/transfer-bank/application/ports/get-account-balance.port';
+import { GET_ACCOUNT_TRANSACTIONS_USE_CASE, IGetAccountTransactionsUseCase } from '../../core/transfer-bank/application/ports/get-account-transactions.port';
+import { User } from '../decorators/user.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { AuthenticatedUser } from '../types/authenticated-user.type';
 
 @ApiTags('accounts')
 @ApiBearerAuth('JWT-auth')
@@ -14,10 +15,11 @@ export class AccountController {
   private readonly logger = new Logger(AccountController.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(GET_ACCOUNT_BALANCE_USE_CASE)
+    private readonly getAccountBalanceUseCase: IGetAccountBalanceUseCase,
     @Inject(GET_ACCOUNT_TRANSACTIONS_USE_CASE)
     private readonly getAccountTransactionsUseCase: IGetAccountTransactionsUseCase,
-  ) {}
+  ) { }
 
   @Get(':accountNumber')
   @ApiOperation({ summary: 'Consultar saldo de una cuenta' })
@@ -27,35 +29,10 @@ export class AccountController {
   @ApiResponse({ status: 401, description: 'No autenticado' })
   async getBalance(
     @Param('accountNumber') accountNumber: string,
-    @User() user: any,
+    @User() user: AuthenticatedUser,
   ) {
     this.logger.log(`Checking account balance: ${accountNumber}`);
-
-    const account = await this.prisma.account.findUnique({
-      where: { accountNumber },
-      select: {
-        accountNumber: true,
-        balance: true,
-        updatedAt: true,
-        userId: true,
-      },
-    });
-
-    if (!account) {
-      throw new NotFoundException(`Account ${accountNumber} not found`);
-    }
-
-    // Verificar que la cuenta pertenece al usuario autenticado
-    if (account.userId !== user.id && user.role !== 'ADMIN') {
-      this.logger.warn(`⚠️ User ${user.email} tried to access another user's account`);
-      throw new NotFoundException(`Account ${accountNumber} not found`);
-    }
-
-    return {
-      accountNumber: account.accountNumber,
-      balance: account.balance,
-      updatedAt: account.updatedAt,
-    };
+    this.getAccountBalanceUseCase.execute(accountNumber, user.id, user.role);
   }
 
   @Get(':accountNumber/transactions')
@@ -67,7 +44,7 @@ export class AccountController {
   async getTransactions(
     @Param('accountNumber') accountNumber: string,
     @Query() filters: GetTransactionsQueryDto,
-    @User() user: any,
+    @User() user: AuthenticatedUser,
   ) {
     this.logger.log(`🔍 Usuario ${user.email} consulta transacciones de: ${accountNumber}`);
     return this.getAccountTransactionsUseCase.execute(accountNumber, user.id, filters);

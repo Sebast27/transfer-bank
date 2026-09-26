@@ -7,9 +7,10 @@ export interface IAccountRepository {
     balance: number;
     status: string;
     userId: string;
+    updatedAt: Date;
   } | null>;
 
-  // Con datos del usuario (para el Worker)
+  // With user data (for the Worker)
   findByNumberWithUser(accountNumber: string): Promise<{
     id: string;
     accountNumber: string;

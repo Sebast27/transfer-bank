@@ -15,6 +15,7 @@ export class PrismaAccountRepository implements IAccountRepository {
         balance: true,
         status: true,
         userId: true,
+        updatedAt: true
       },
     });
 
