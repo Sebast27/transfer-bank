@@ -6,7 +6,6 @@ yarn.lock
 # Código compilado
 dist/
 build/
-*.js
 *.js.map
 *.d.ts
 !*.d.ts
