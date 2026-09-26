@@ -20,7 +20,6 @@ export class DepositProcessor extends WorkerHost {
     super();
   }
 
-
   async process(job: Job<any, any, string>): Promise<any> {
     const { depositId, accountId, amount } = job.data;
 

@@ -42,7 +42,7 @@ import { WithdrawalProcessor } from './withdrawal.processor';
     DepositProcessor,
     WithdrawalProcessor,
 
-    // Repositorios (adaptadores)
+    // Repositories (adapters)
     {
       provide: ACCOUNT_REPOSITORY,
       useClass: PrismaAccountRepository,
@@ -64,7 +64,7 @@ import { WithdrawalProcessor } from './withdrawal.processor';
       useClass: PrismaWithdrawalRepository,
     },
 
-    // Puertos de servicios externos
+    // External service ports
     {
       provide: QUEUE_PORT,
       useClass: BullMQQueueAdapter,

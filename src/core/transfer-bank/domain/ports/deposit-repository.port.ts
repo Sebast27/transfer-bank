@@ -23,6 +23,17 @@ export interface IDepositRepository {
     createdAt: Date;
     approvedAt: Date | null;
     completedAt: Date | null;
+    account: {
+      id: string;
+      accountNumber: string;
+      balance: number;
+      status: string;
+      user: {
+        id: string;
+        email: string;
+        name: string;
+      };
+    };
   } | null>;
 
   updateStatus(id: string, status: string, approvedBy?: string): Promise<void>;

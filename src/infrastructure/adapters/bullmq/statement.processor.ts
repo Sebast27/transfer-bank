@@ -69,18 +69,8 @@ export class StatementProcessor extends WorkerHost {
       // 6. Enqueue email notification
       await this.queuePort.add('notification-queue', {
         to: statement.account.user.email,
-        subject: 'Estado de cuenta disponible',
-        body: `Tu estado de cuenta para ${statement.account.accountNumber} está listo. Puedes descargarlo desde la aplicación.`,
-        template: 'statement-ready',
-      });
-
-      this.logger.log(`✅ Estado de cuenta completado: ${statementId}`);
-
-      // Enqueue email notification
-      await this.queuePort.add('notification-queue', {
-        to: statement.account.user.email,
-        subject: 'Estado de cuenta disponible',
-        body: `Tu estado de cuenta para ${statement.account.accountNumber} está listo. Puedes descargarlo desde la aplicación.`,
+        subject: 'Account statement available',
+        body: `Your account statement for ${statement.account.accountNumber} It's ready. You can download it from the app.`,
         template: 'statement-ready',
       });
 

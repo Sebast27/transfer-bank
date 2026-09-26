@@ -29,8 +29,8 @@ export class PrismaDepositRepository implements IDepositRepository {
     };
   }
 
-  async findById(id: string): Promise<any | null> {
-    return this.prisma.deposit.findUnique({
+  async findById(id: string) {
+    const deposit = await this.prisma.deposit.findUnique({
       where: { id },
       include: {
         account: {
@@ -38,6 +38,32 @@ export class PrismaDepositRepository implements IDepositRepository {
         },
       },
     });
+
+    if (!deposit) return null;
+
+    return {
+      id: deposit.id,
+      accountId: deposit.accountId,
+      amount: deposit.amount,
+      status: deposit.status,
+      requestedBy: deposit.requestedBy,
+      approvedBy: deposit.approvedBy,
+      reference: deposit.reference,
+      createdAt: deposit.createdAt,
+      approvedAt: deposit.approvedAt,
+      completedAt: deposit.completedAt,
+      account: {
+        id: deposit.account.id,
+        accountNumber: deposit.account.accountNumber,
+        balance: deposit.account.balance,
+        status: deposit.account.status,
+        user: {
+          id: deposit.account.user.id,
+          email: deposit.account.user.email,
+          name: deposit.account.user.name,
+        },
+      },
+    };
   }
 
   async updateStatus(id: string, status: string, approvedBy?: string): Promise<void> {
