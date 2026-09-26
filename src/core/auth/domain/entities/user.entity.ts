@@ -106,7 +106,7 @@ export class UserEntity {
   toJSON() {
     return {
       id: this.id,
-      email: this.email,
+      email: this.email.getValue(),
       name: this.name,
       role: this.role,
       isActive: this.isActive,
