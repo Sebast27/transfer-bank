@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { GET_WITHDRAWAL_STATUS_USE_CASE } from '../../core/transfer-bank/application/ports/get-withdrawal-status.port';
 import { REQUEST_WITHDRAWAL_USE_CASE } from '../../core/transfer-bank/application/ports/request-withdrawal.port';
+import { GetWithdrawalStatusUseCase } from '../../core/transfer-bank/application/use-cases/get-withdrawal-status.use-case';
 import { RequestWithdrawalUseCase } from '../../core/transfer-bank/application/use-cases/request-withdrawal.use-case';
 import { ACCOUNT_REPOSITORY } from '../../core/transfer-bank/domain/ports/account-repository.port';
 import { WITHDRAWAL_REPOSITORY } from '../../core/transfer-bank/domain/ports/withdrawal-repository.port';
@@ -16,9 +18,13 @@ import { WithdrawalController } from '../controllers/withdrawal.controller';
   ],
   controllers: [WithdrawalController],
   providers: [
-    { provide: ACCOUNT_REPOSITORY, useClass: PrismaAccountRepository, },
-    { provide: WITHDRAWAL_REPOSITORY, useClass: PrismaWithdrawalRepository, },
-    { provide: REQUEST_WITHDRAWAL_USE_CASE, useClass: RequestWithdrawalUseCase, },
+    // Repositories
+    { provide: ACCOUNT_REPOSITORY, useClass: PrismaAccountRepository },
+    { provide: WITHDRAWAL_REPOSITORY, useClass: PrismaWithdrawalRepository },
+
+    // Use cases
+    { provide: REQUEST_WITHDRAWAL_USE_CASE, useClass: RequestWithdrawalUseCase },
+    { provide: GET_WITHDRAWAL_STATUS_USE_CASE, useClass: GetWithdrawalStatusUseCase },
   ],
 })
 export class WithdrawalModule { }

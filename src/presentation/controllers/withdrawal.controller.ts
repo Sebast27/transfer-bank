@@ -1,33 +1,36 @@
 import {
-  Controller,
-  Post,
-  Get,
   Body,
-  Param,
-  UseGuards,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
-  NotFoundException,
+  Logger,
+  Param,
+  Post,
+  UseGuards
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { User } from '../decorators/user.decorator';
-import { IRequestWithdrawalUseCase, REQUEST_WITHDRAWAL_USE_CASE } from '../../core/transfer-bank/application/ports/request-withdrawal.port';
-import { IWithdrawalRepository, WITHDRAWAL_REPOSITORY } from '../../core/transfer-bank/domain/ports/withdrawal-repository.port';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RequestWithdrawalDto } from '../../core/transfer-bank/application/dto/request-withdrawal.dto';
+import { GET_WITHDRAWAL_STATUS_USE_CASE, IGetWithdrawalStatusUseCase } from '../../core/transfer-bank/application/ports/get-withdrawal-status.port';
+import { IRequestWithdrawalUseCase, REQUEST_WITHDRAWAL_USE_CASE } from '../../core/transfer-bank/application/ports/request-withdrawal.port';
+import { User } from '../decorators/user.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { AuthenticatedUser } from '../types/authenticated-user.type';
 
 @ApiTags('withdrawals')
 @ApiBearerAuth('JWT-auth')
 @Controller('withdrawals')
 @UseGuards(JwtAuthGuard)
 export class WithdrawalController {
+  private readonly logger = new Logger(WithdrawalController.name);
+
   constructor(
     @Inject(REQUEST_WITHDRAWAL_USE_CASE)
     private readonly requestWithdrawalUseCase: IRequestWithdrawalUseCase,
-    @Inject(WITHDRAWAL_REPOSITORY)
-    private readonly withdrawalRepository: IWithdrawalRepository,
-  ) {}
+    @Inject(GET_WITHDRAWAL_STATUS_USE_CASE)
+    private readonly getWithdrawalStatusUseCase: IGetWithdrawalStatusUseCase,
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
@@ -35,8 +38,11 @@ export class WithdrawalController {
   @ApiResponse({ status: 202, description: 'Retiro iniciado' })
   @ApiResponse({ status: 400, description: 'Saldo insuficiente' })
   @ApiResponse({ status: 404, description: 'Cuenta no encontrada' })
-  async requestWithdrawal(@Body() dto: RequestWithdrawalDto, @User() user: any) {
-    console.log(`User ${user.email} requested withdrawal from ${dto.accountNumber}`);
+  async requestWithdrawal(
+    @Body() dto: RequestWithdrawalDto,
+    @User() user: AuthenticatedUser,
+  ) {
+    this.logger.log(`User ${user.email} requested withdrawal from ${dto.accountNumber}`);
     return this.requestWithdrawalUseCase.execute(dto, user.id);
   }
 
@@ -44,13 +50,11 @@ export class WithdrawalController {
   @ApiOperation({ summary: 'Consultar estado de un retiro' })
   @ApiResponse({ status: 200, description: 'Estado del retiro' })
   @ApiResponse({ status: 404, description: 'Retiro no encontrado' })
-  async getWithdrawalStatus(@Param('id') id: string, @User() user: any) {
-    const withdrawal = await this.withdrawalRepository.findById(id);
-
-    if (!withdrawal) {
-      throw new NotFoundException('Withdrawal not found');
-    }
-
-    return withdrawal;
+  async getWithdrawalStatus(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ) {
+    this.logger.log(`User ${user.email} checking withdrawal ${id}`);
+    return this.getWithdrawalStatusUseCase.execute(id, user.id, user.role);
   }
 }

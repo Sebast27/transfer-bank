@@ -19,6 +19,7 @@ export interface IWithdrawalRepository {
     reference: string | null;
     createdAt: Date;
     completedAt: Date | null;
+    accountUserId: string;
   } | null>;
 
   // Datos de cuenta y usuario (para el Worker)

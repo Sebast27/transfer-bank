@@ -27,10 +27,28 @@ export class PrismaWithdrawalRepository implements IWithdrawalRepository {
     };
   }
 
-  async findById(id: string): Promise<any | null> {
-    return this.prisma.withdrawal.findUnique({
+  async findById(id: string) {
+    const withdrawal = await this.prisma.withdrawal.findUnique({
       where: { id },
+      include: {
+        account: {
+          select: { userId: true },
+        },
+      },
     });
+
+    if (!withdrawal) return null;
+
+    return {
+      id: withdrawal.id,
+      accountId: withdrawal.accountId,
+      amount: withdrawal.amount,
+      status: withdrawal.status,
+      reference: withdrawal.reference,
+      createdAt: withdrawal.createdAt,
+      completedAt: withdrawal.completedAt,
+      accountUserId: withdrawal.account.userId,
+    };
   }
 
   async findByIdWithAccount(id: string) {
