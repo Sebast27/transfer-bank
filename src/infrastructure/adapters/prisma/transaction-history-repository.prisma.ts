@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ITransactionHistoryRepository, TransactionHistoryItem } from '../../../core/transfer-bank/application/ports/transaction-history-repository.port';
+import { ITransactionHistoryRepository, TransactionHistoryItem } from '../../../core/transfer-bank/domain/ports/transaction-history-repository.port';
 import { PrismaService } from './prisma.service';
 
 @Injectable()

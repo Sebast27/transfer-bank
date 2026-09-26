@@ -1,20 +1,25 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { Logger, Inject } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { IQueuePort, QUEUE_PORT } from '../../../core/transfer-bank/application/ports/queue.port';
+import { ACCOUNT_REPOSITORY, IAccountRepository } from '../../../core/transfer-bank/domain/ports/account-repository.port';
+import { DEPOSIT_REPOSITORY, IDepositRepository } from '../../../core/transfer-bank/domain/ports/deposit-repository.port';
 
 @Processor('deposit-queue')
 export class DepositProcessor extends WorkerHost {
   private readonly logger = new Logger(DepositProcessor.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(DEPOSIT_REPOSITORY)
+    private readonly depositRepository: IDepositRepository,
+    @Inject(ACCOUNT_REPOSITORY)
+    private readonly accountRepository: IAccountRepository,
     @Inject(QUEUE_PORT)
     private readonly queuePort: IQueuePort,
   ) {
     super();
   }
+
 
   async process(job: Job<any, any, string>): Promise<any> {
     const { depositId, accountId, amount } = job.data;
@@ -25,14 +30,7 @@ export class DepositProcessor extends WorkerHost {
 
     try {
       // 1. Get deposit and account with user
-      const deposit = await this.prisma.deposit.findUnique({
-        where: { id: depositId },
-        include: {
-          account: {
-            include: { user: true },
-          },
-        },
-      });
+      const deposit = await this.depositRepository.findById(depositId);
 
       if (!deposit) {
         throw new Error(`Deposit ${depositId} not found`);
@@ -42,21 +40,8 @@ export class DepositProcessor extends WorkerHost {
         throw new Error(`Account is ${deposit.account.status}`);
       }
 
-      // 2. Update account balance (atomic)
-      await this.prisma.$transaction(async (tx) => {
-        await tx.account.update({
-          where: { id: accountId },
-          data: { balance: { increment: amount } },
-        });
-
-        await tx.deposit.update({
-          where: { id: depositId },
-          data: {
-            status: 'COMPLETED',
-            completedAt: new Date(),
-          },
-        });
-      });
+      // 2. Update account balance + deposit status (atomic)
+      await this.depositRepository.completeDeposit(depositId, accountId, amount);
 
       this.logger.log(`✅ Depósito completado: ${depositId}`);
 
@@ -73,13 +58,6 @@ export class DepositProcessor extends WorkerHost {
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-      await this.prisma.deposit.update({
-        where: { id: depositId },
-        data: {
-          status: 'REJECTED',
-        },
-      });
 
       this.logger.error(`❌ Depósito fallido: ${depositId} - ${errorMessage}`);
       throw error;

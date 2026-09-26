@@ -1,7 +1,8 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
+import { ACCOUNT_REPOSITORY, IAccountRepository } from '@/core/transfer-bank/domain/ports/account-repository.port';
+import { ITransactionRepository, TRANSACTION_REPOSITORY } from '@/core/transfer-bank/domain/ports/transaction-repository.port';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Job } from 'bullmq';
 import { IQueuePort } from '../../../core/transfer-bank/application/ports/queue.port';
 
 @Processor('transfer-queue')
@@ -9,7 +10,10 @@ export class TransferProcessor extends WorkerHost {
   private readonly logger = new Logger(TransferProcessor.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(ACCOUNT_REPOSITORY)
+    private readonly accountRepository: IAccountRepository,
+    @Inject(TRANSACTION_REPOSITORY)
+    private readonly transactionRepository: ITransactionRepository,
     @Inject('QUEUE_PORT')
     private readonly queuePort: IQueuePort,
   ) {
@@ -24,23 +28,16 @@ export class TransferProcessor extends WorkerHost {
     this.logger.log(`   Monto: $${amount}`);
 
     try {
-      // 1. Buscar cuentas
-      const fromAccount = await this.prisma.account.findUnique({
-        where: { accountNumber: fromAccountNumber },
-        include: { user: true },
-      });
-
-      const toAccount = await this.prisma.account.findUnique({
-        where: { accountNumber: toAccountNumber },
-        include: { user: true },
-      });
+      // 1. Search for accounts
+      const fromAccount = await this.accountRepository.findByNumberWithUser(fromAccountNumber);
+      const toAccount = await this.accountRepository.findByNumberWithUser(toAccountNumber);
 
       if (!fromAccount) {
-        throw new Error(`Cuenta origen ${fromAccountNumber} no encontrada`);
+        throw new Error(`Source account ${fromAccountNumber} not found`);
       }
 
       if (!toAccount) {
-        throw new Error(`Cuenta destino ${toAccountNumber} no encontrada`);
+        throw new Error(`Destination account ${toAccountNumber} not found`);
       }
 
       if (fromAccount.status !== 'ACTIVE') {
@@ -48,37 +45,21 @@ export class TransferProcessor extends WorkerHost {
       }
 
       if (toAccount.status !== 'ACTIVE') {
-        throw new Error(`Destination account is ${toAccount.status}`);
+        throw new Error(`The destination account is ${toAccount.status}`);
       }
 
-      // 2. Validar saldo
+      // 2. Validate balance
       if (fromAccount.balance < amount) {
-        throw new Error(`Saldo insuficiente en ${fromAccountNumber}`);
+        throw new Error(`Insufficient balance in ${fromAccountNumber}`);
       }
 
-      // 3. Ejecutar transferencia (operación atómica)
-      await this.prisma.$transaction(async (tx) => {
-        // ACTUALIZAR SALDO ORIGEN
-        await tx.account.update({
-          where: { id: fromAccount.id },
-          data: { balance: { decrement: amount } },
-        });
-
-        // ACTUALIZAR SALDO DESTINO
-        await tx.account.update({
-          where: { id: toAccount.id },
-          data: { balance: { increment: amount } },
-        });
-
-        // COMPLETAR TRANSACCIÓN
-        await tx.transaction.update({
-          where: { id: transactionId },
-          data: {
-            status: 'COMPLETED',
-            completedAt: new Date(),
-          },
-        });
-      });
+      // 3. Execute transfer (atomic operation)
+      await this.transactionRepository.completeTransfer(
+        transactionId,
+        fromAccount.id,
+        toAccount.id,
+        amount,
+      );
 
       this.logger.log(`✅ Transferencia completada: ${transactionId}`);
       this.logger.log(`   Nuevo saldo origen: $${fromAccount.balance - amount}`);
@@ -87,25 +68,19 @@ export class TransferProcessor extends WorkerHost {
       // Enqueue email notification
       await this.queuePort.add('notification-queue', {
         to: fromAccount.user.email,
-        subject: 'Transferencia completada',
-        body: `Tu transferencia de $${amount} a ${toAccountNumber} ha sido completada exitosamente.`,
+        subject: 'Transfer completed',
+        body: `Your transfer of $${amount} a ${toAccountNumber} has been successfully completed.`,
         template: 'transfer-completed',
       });
 
-      this.logger.log(`📧 Notificación encolada para: ${fromAccount.user.email}`);
+      this.logger.log(`📧 Notificación en cola para: ${fromAccount.user.email}`);
 
       return { success: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      this.logger.error(`❌ Transferencia fallida: ${transactionId} - ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`❌ Transfer failed: ${transactionId} - ${errorMessage}`);
 
-      await this.prisma.transaction.update({
-        where: { id: transactionId },
-        data: {
-          status: 'FAILED',
-          attempts: { increment: 1 },
-        },
-      });
+      await this.transactionRepository.markAsFailed(transactionId);
 
       throw error;
     }

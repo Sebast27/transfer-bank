@@ -28,4 +28,6 @@ export interface IDepositRepository {
   updateStatus(id: string, status: string, approvedBy?: string): Promise<void>;
 
   findPending(): Promise<any[]>;
+
+  completeDeposit(depositId: string, accountId: string, amount: number): Promise<void>;
 }

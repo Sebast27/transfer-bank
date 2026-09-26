@@ -21,6 +21,28 @@ export class PrismaAccountRepository implements IAccountRepository {
     return account;
   }
 
+  async findByNumberWithUser(accountNumber: string) {
+    const account = await this.prisma.account.findUnique({
+      where: { accountNumber },
+      select: {
+        id: true,
+        accountNumber: true,
+        balance: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return account;
+  }
+
   async findUserByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },

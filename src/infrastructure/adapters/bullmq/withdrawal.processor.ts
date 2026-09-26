@@ -1,15 +1,16 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { Logger, Inject } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { IQueuePort, QUEUE_PORT } from '../../../core/transfer-bank/application/ports/queue.port';
+import { IWithdrawalRepository, WITHDRAWAL_REPOSITORY } from '../../../core/transfer-bank/domain/ports/withdrawal-repository.port';
 
 @Processor('withdrawal-queue')
 export class WithdrawalProcessor extends WorkerHost {
   private readonly logger = new Logger(WithdrawalProcessor.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(WITHDRAWAL_REPOSITORY)
+    private readonly withdrawalRepository: IWithdrawalRepository,
     @Inject(QUEUE_PORT)
     private readonly queuePort: IQueuePort,
   ) {
@@ -25,14 +26,7 @@ export class WithdrawalProcessor extends WorkerHost {
 
     try {
       // 1. Get withdrawal and account with user
-      const withdrawal = await this.prisma.withdrawal.findUnique({
-        where: { id: withdrawalId },
-        include: {
-          account: {
-            include: { user: true },
-          },
-        },
-      });
+      const withdrawal = await this.withdrawalRepository.findByIdWithAccount(withdrawalId);
 
       if (!withdrawal) {
         throw new Error(`Withdrawal ${withdrawalId} not found`);
@@ -48,28 +42,15 @@ export class WithdrawalProcessor extends WorkerHost {
       }
 
       // 3. Update account balance (atomic)
-      await this.prisma.$transaction(async (tx) => {
-        await tx.account.update({
-          where: { id: accountId },
-          data: { balance: { decrement: amount } },
-        });
-
-        await tx.withdrawal.update({
-          where: { id: withdrawalId },
-          data: {
-            status: 'COMPLETED',
-            completedAt: new Date(),
-          },
-        });
-      });
+      await this.withdrawalRepository.completeWithdrawal(withdrawalId, accountId, amount);
 
       this.logger.log(`✅ Retiro completado: ${withdrawalId}`);
 
       // 4. Enqueue email notification
       await this.queuePort.add('notification-queue', {
         to: withdrawal.account.user.email,
-        subject: 'Retiro completado',
-        body: `Tu retiro de $${amount} de la cuenta ${withdrawal.account.accountNumber} ha sido completado exitosamente.`,
+        subject: 'Withdrawal completed',
+        body: `Your retirement from $${amount} de la cuenta ${withdrawal.account.accountNumber} has been successfully completed.`,
         template: 'withdrawal-completed',
       });
 
@@ -79,12 +60,7 @@ export class WithdrawalProcessor extends WorkerHost {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      await this.prisma.withdrawal.update({
-        where: { id: withdrawalId },
-        data: {
-          status: 'FAILED',
-        },
-      });
+      await this.withdrawalRepository.markAsFailed(withdrawalId);
 
       this.logger.error(`❌ Retiro fallido: ${withdrawalId} - ${errorMessage}`);
       throw error;

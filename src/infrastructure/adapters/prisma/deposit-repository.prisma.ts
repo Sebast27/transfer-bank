@@ -4,7 +4,7 @@ import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class PrismaDepositRepository implements IDepositRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(data: {
     accountId: string;
@@ -32,6 +32,11 @@ export class PrismaDepositRepository implements IDepositRepository {
   async findById(id: string): Promise<any | null> {
     return this.prisma.deposit.findUnique({
       where: { id },
+      include: {
+        account: {
+          include: { user: true },
+        },
+      },
     });
   }
 
@@ -56,6 +61,23 @@ export class PrismaDepositRepository implements IDepositRepository {
         },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async completeDeposit(depositId: string, accountId: string, amount: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.account.update({
+        where: { id: accountId },
+        data: { balance: { increment: amount } },
+      });
+
+      await tx.deposit.update({
+        where: { id: depositId },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+        },
+      });
     });
   }
 }

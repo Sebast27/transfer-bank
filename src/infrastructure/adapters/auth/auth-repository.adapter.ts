@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { IAuthRepository } from '../../../core/auth/application/ports/auth-repository.port';
 import { UserEntity } from '../../../core/auth/domain/entities/user.entity';
+import { IAuthRepository } from '../../../core/auth/domain/ports/auth-repository.port';
 import { PrismaService } from '../../adapters/prisma/prisma.service';
 
 @Injectable()
 export class AuthRepositoryAdapter implements IAuthRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findByEmail(email: string): Promise<UserEntity | null> {
     const user = await this.prisma.user.findUnique({

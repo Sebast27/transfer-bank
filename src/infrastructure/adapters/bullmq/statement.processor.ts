@@ -1,16 +1,17 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
-import { Logger, Inject } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { IPdfGeneratorPort, PDF_GENERATOR_PORT } from '../../../core/transfer-bank/application/ports/pdf-generator.port';
 import { IQueuePort, QUEUE_PORT } from '@/core/transfer-bank/application/ports/queue.port';
+import { IStatementRepository, STATEMENT_REPOSITORY } from '@/core/transfer-bank/domain/ports/statement-repository.port';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Inject, Logger } from '@nestjs/common';
+import { Job } from 'bullmq';
+import { IPdfGeneratorPort, PDF_GENERATOR_PORT } from '../../../core/transfer-bank/application/ports/pdf-generator.port';
 
 @Processor('statement-queue')
 export class StatementProcessor extends WorkerHost {
   private readonly logger = new Logger(StatementProcessor.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(STATEMENT_REPOSITORY)
+    private readonly statementRepository: IStatementRepository,
     @Inject(PDF_GENERATOR_PORT)
     private readonly pdfGenerator: IPdfGeneratorPort,
     @Inject(QUEUE_PORT)
@@ -22,38 +23,21 @@ export class StatementProcessor extends WorkerHost {
   async process(job: Job<any, any, string>): Promise<any> {
     const { statementId } = job.data;
 
-    this.logger.log(`🔄 Procesando estado de cuenta: ${statementId}`);
+    this.logger.log(`: ${statementId}`);
 
     try {
       // 1. Update status to PROCESSING
-      await this.prisma.statement.update({
-        where: { id: statementId },
-        data: { status: 'PROCESSING' },
-      });
+      await this.statementRepository.updateStatus(statementId, 'PROCESSING');
 
-      // 2. Get statement data
-      const statement = await this.prisma.statement.findUnique({
-        where: { id: statementId },
-        include: {
-          account: {
-            include: {
-              user: true,
-              fromTransactions: true,
-              toTransactions: true,
-            },
-          },
-        },
-      });
+      // 2. Get statement with account data
+      const statement = await this.statementRepository.findByIdWithAccount(statementId);
 
       if (!statement) {
         throw new Error(`Statement ${statementId} not found`);
       }
 
-      // 3. Get transactions in the period
-      const transactions = [
-        ...statement.account.fromTransactions,
-        ...statement.account.toTransactions,
-      ]
+      // 3. Filter transactions in the period
+      const transactions = statement.account.transactions
         .filter(
           (t) =>
             t.createdAt >= statement.periodStart &&
@@ -77,14 +61,17 @@ export class StatementProcessor extends WorkerHost {
         transactions,
       });
 
-      // 5. Update statement with file path and status
-      await this.prisma.statement.update({
-        where: { id: statementId },
-        data: {
-          status: 'COMPLETED',
-          filePath,
-          completedAt: new Date(),
-        },
+      // 5. Complete statement
+      await this.statementRepository.completeStatement(statementId, filePath);
+
+      this.logger.log(`✅ Estado de cuenta completado: ${statementId}`);
+
+      // 6. Enqueue email notification
+      await this.queuePort.add('notification-queue', {
+        to: statement.account.user.email,
+        subject: 'Estado de cuenta disponible',
+        body: `Tu estado de cuenta para ${statement.account.accountNumber} está listo. Puedes descargarlo desde la aplicación.`,
+        template: 'statement-ready',
       });
 
       this.logger.log(`✅ Estado de cuenta completado: ${statementId}`);
@@ -103,13 +90,7 @@ export class StatementProcessor extends WorkerHost {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      await this.prisma.statement.update({
-        where: { id: statementId },
-        data: {
-          status: 'FAILED',
-          error: errorMessage,
-        },
-      });
+      await this.statementRepository.markAsFailed(statementId, errorMessage);
 
       this.logger.error(`❌ Estado de cuenta fallido: ${statementId} - ${errorMessage}`);
       throw error;

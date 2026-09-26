@@ -6,4 +6,13 @@ export interface ITransactionRepository {
   save(transaction: Transaction): Promise<Transaction>;
   findById(id: string): Promise<Transaction | null>;
   updateStatus(id: string, status: string): Promise<Transaction>;
+
+  completeTransfer(
+    transactionId: string,
+    fromAccountId: string,
+    toAccountId: string,
+    amount: number,
+  ): Promise<void>;
+
+  markAsFailed(transactionId: string): Promise<void>;
 }

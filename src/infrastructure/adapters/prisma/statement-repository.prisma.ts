@@ -4,7 +4,7 @@ import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class PrismaStatementRepository implements IStatementRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(data: {
     accountId: string;
@@ -59,5 +59,82 @@ export class PrismaStatementRepository implements IStatementRepository {
       createdAt: statement.createdAt,
       completedAt: statement.completedAt,
     };
+  }
+
+  async findByIdWithAccount(id: string) {
+    const statement = await this.prisma.statement.findUnique({
+      where: { id },
+      include: {
+        account: {
+          include: {
+            user: true,
+            fromTransactions: true,
+            toTransactions: true,
+          },
+        },
+      },
+    });
+
+    if (!statement) return null;
+
+    return {
+      id: statement.id,
+      accountId: statement.accountId,
+      periodStart: statement.periodStart,
+      periodEnd: statement.periodEnd,
+      status: statement.status,
+      filePath: statement.filePath,
+      account: {
+        id: statement.account.id,
+        accountNumber: statement.account.accountNumber,
+        balance: statement.account.balance,
+        status: statement.account.status,
+        user: {
+          id: statement.account.user.id,
+          email: statement.account.user.email,
+          name: statement.account.user.name,
+        },
+        transactions: [
+          ...statement.account.fromTransactions,
+          ...statement.account.toTransactions,
+        ].map((t) => ({
+          id: t.id,
+          fromAccountId: t.fromAccountId,
+          toAccountId: t.toAccountId,
+          amount: t.amount,
+          status: t.status,
+          reference: t.reference,
+          createdAt: t.createdAt,
+        })),
+      },
+    };
+  }
+
+  async updateStatus(id: string, status: string): Promise<void> {
+    await this.prisma.statement.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  async completeStatement(id: string, filePath: string): Promise<void> {
+    await this.prisma.statement.update({
+      where: { id },
+      data: {
+        status: 'COMPLETED',
+        filePath,
+        completedAt: new Date(),
+      },
+    });
+  }
+
+  async markAsFailed(id: string, error: string): Promise<void> {
+    await this.prisma.statement.update({
+      where: { id },
+      data: {
+        status: 'FAILED',
+        error,
+      },
+    });
   }
 }
