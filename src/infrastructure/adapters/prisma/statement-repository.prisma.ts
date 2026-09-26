@@ -41,7 +41,10 @@ export class PrismaStatementRepository implements IStatementRepository {
       where: { id },
       include: {
         account: {
-          select: { accountNumber: true },
+          select: {
+            accountNumber: true,
+            userId: true,
+          },
         },
       },
     });
@@ -50,7 +53,9 @@ export class PrismaStatementRepository implements IStatementRepository {
 
     return {
       id: statement.id,
+      accountId: statement.accountId,
       accountNumber: statement.account.accountNumber,
+      accountUserId: statement.account.userId,
       periodStart: statement.periodStart,
       periodEnd: statement.periodEnd,
       status: statement.status,

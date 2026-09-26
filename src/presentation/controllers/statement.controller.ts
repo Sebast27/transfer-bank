@@ -1,59 +1,62 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
   Inject,
-  NotFoundException,
+  Logger,
   Param,
   Post,
-  Res,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
-import * as fs from 'fs';
 import { RequestStatementDto } from '../../core/transfer-bank/application/dto/request-statement.dto';
+import { DOWNLOAD_STATEMENT_USE_CASE, IDownloadStatementUseCase } from '../../core/transfer-bank/application/ports/download-statement.port';
 import { GENERATE_STATEMENT_USE_CASE, IGenerateStatementUseCase } from '../../core/transfer-bank/application/ports/generate-statement.port';
-import { IStatementRepository, STATEMENT_REPOSITORY } from '../../core/transfer-bank/domain/ports/statement-repository.port';
+import { GET_STATEMENT_STATUS_USE_CASE, IGetStatementStatusUseCase } from '../../core/transfer-bank/application/ports/get-statement-status.port';
 import { User } from '../decorators/user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { AuthenticatedUser } from '../types/authenticated-user.type';
 
 @ApiTags('statements')
 @ApiBearerAuth('JWT-auth')
 @Controller('statements')
 @UseGuards(JwtAuthGuard)
 export class StatementController {
+  private readonly logger = new Logger(StatementController.name);
+
   constructor(
     @Inject(GENERATE_STATEMENT_USE_CASE)
     private readonly generateStatementUseCase: IGenerateStatementUseCase,
-    @Inject(STATEMENT_REPOSITORY)
-    private readonly statementRepository: IStatementRepository,
+    @Inject(GET_STATEMENT_STATUS_USE_CASE)
+    private readonly getStatementStatusUseCase: IGetStatementStatusUseCase,
+    @Inject(DOWNLOAD_STATEMENT_USE_CASE)
+    private readonly downloadStatementUseCase: IDownloadStatementUseCase,
   ) { }
 
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({ summary: 'Solicitar estado de cuenta (PDF asíncrono)' })
   @ApiResponse({ status: 202, description: 'Statement encolado' })
-  async requestStatement(@Body() dto: RequestStatementDto, @User() user: any) {
-    console.log(`User ${user.email} requested statement for ${dto.accountNumber}`);
+  async requestStatement(
+    @Body() dto: RequestStatementDto,
+    @User() user: AuthenticatedUser,
+  ) {
+    this.logger.log(`User ${user.email} requested statement for ${dto.accountNumber}`);
     return this.generateStatementUseCase.execute(dto);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Consultar estado del statement' })
   @ApiResponse({ status: 200, description: 'Estado del statement' })
-  async getStatementStatus(@Param('id') id: string, @User() user: any) {
-    console.log(`User ${user.email} checking statement ${id}`);
-    const statement = await this.statementRepository.findById(id);
-
-    if (!statement) {
-      throw new NotFoundException('Statement not found');
-    }
-
-    return statement;
+  async getStatementStatus(
+    @Param('id') id: string,
+    @User() user: AuthenticatedUser,
+  ) {
+    this.logger.log(`User ${user.email} checking statement ${id}`);
+    return this.getStatementStatusUseCase.execute(id, user.id, user.role);
   }
 
   @Get(':id/download')
@@ -63,38 +66,20 @@ export class StatementController {
   @ApiResponse({ status: 404, description: 'Statement no encontrado' })
   async downloadStatement(
     @Param('id') id: string,
-    @User() user: any,
-    @Res() res: Response,
-  ) {
-    console.log(`User ${user.email} downloading statement ${id}`);
+    @User() user: AuthenticatedUser,
+  ): Promise<StreamableFile> {
+    this.logger.log(`User ${user.email} downloading statement ${id}`);
 
-    const statement = await this.statementRepository.findById(id);
-
-    if (!statement) {
-      throw new NotFoundException('Statement not found');
-    }
-
-    if (statement.status !== 'COMPLETED') {
-      throw new BadRequestException(`Statement is not ready. Current status: ${statement.status}`);
-    }
-
-    if (!statement.filePath) {
-      throw new NotFoundException('Statement file not found');
-    }
-
-    if (!fs.existsSync(statement.filePath)) {
-      throw new NotFoundException('Statement file does not exist on disk');
-    }
-
-    // Set headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="statement-${statement.id}.pdf"`,
+    const { stream, fileName, contentType } = await this.downloadStatementUseCase.execute(
+      id,
+      user.id,
+      user.role,
     );
 
-    // Send file
-    const fileStream = fs.createReadStream(statement.filePath);
-    fileStream.pipe(res);
+    // StreamableFile it's a NestJS class, not an Express one.
+    return new StreamableFile(stream, {
+      type: contentType,
+      disposition: `attachment; filename="${fileName}"`,
+    });
   }
 }

@@ -13,6 +13,8 @@ export interface IStatementRepository {
   findById(id: string): Promise<{
     id: string;
     accountId: string;
+    accountNumber: string;
+    accountUserId: string;
     periodStart: Date;
     periodEnd: Date;
     status: string;

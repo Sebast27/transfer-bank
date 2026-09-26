@@ -32,7 +32,7 @@ export class AccountController {
     @User() user: AuthenticatedUser,
   ) {
     this.logger.log(`Checking account balance: ${accountNumber}`);
-    this.getAccountBalanceUseCase.execute(accountNumber, user.id, user.role);
+    return this.getAccountBalanceUseCase.execute(accountNumber, user.id, user.role);
   }
 
   @Get(':accountNumber/transactions')

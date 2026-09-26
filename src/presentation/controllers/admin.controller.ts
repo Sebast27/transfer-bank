@@ -46,7 +46,7 @@ export class AdminController {
   @ApiResponse({ status: 403, description: 'Acceso denegado' })
   async getAllTransfers() {
     this.logger.log('🔍 Admin consultando TODAS las transferencias');
-    this.getAllTransfersUseCase.execute();
+    return this.getAllTransfersUseCase.execute();
   }
 
   // ============================================
@@ -59,7 +59,7 @@ export class AdminController {
   @ApiResponse({ status: 403, description: 'Acceso denegado' })
   async getAllAccounts() {
     this.logger.log('🔍 Admin consultando TODAS las cuentas');
-    this.getAllAccountsUseCase.execute();
+    return this.getAllAccountsUseCase.execute();
   }
 
   @Post('accounts')
