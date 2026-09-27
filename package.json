@@ -62,5 +62,9 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
+  },
+  "optionalDependencies": {
+    "@emnapi/core": "*",
+    "@emnapi/runtime": "*"
   }
 }
