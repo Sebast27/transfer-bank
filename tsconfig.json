@@ -19,16 +19,35 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@domain/*": ["./src/domain/*"],
-      "@application/*": ["./src/application/*"],
-      "@infrastructure/*": ["./src/infrastructure/*"],
-      "@presentation/*": ["./src/presentation/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@domain/*": [
+        "./src/domain/*"
+      ],
+      "@application/*": [
+        "./src/application/*"
+      ],
+      "@infrastructure/*": [
+        "./src/infrastructure/*"
+      ],
+      "@presentation/*": [
+        "./src/presentation/*"
+      ],
+      "@shared/*": [
+        "./src/shared/*"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
