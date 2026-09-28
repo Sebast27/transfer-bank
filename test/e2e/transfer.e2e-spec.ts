@@ -2,7 +2,10 @@ import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/comm
 import { Test, TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import request from 'supertest';
-import { GET_TRANSFER_STATUS_USE_CASE } from '../../src/core/transfer-bank/application/ports/get-transfer-status.port';
+import {
+  GET_TRANSFER_STATUS_USE_CASE,
+  IGetTransferStatusUseCase,
+} from '../../src/core/transfer-bank/application/ports/get-transfer-status.port';
 import { PROCESS_TRANSFER_USE_CASE } from '../../src/core/transfer-bank/application/ports/process-transfer.port';
 import {
   IQueuePort,
@@ -21,7 +24,7 @@ describe('Transfer API (integration)', () => {
   let module: TestingModule;
   let transactionRepository: jest.Mocked<ITransactionRepository>;
   let queuePort: jest.Mocked<IQueuePort>;
-  let getTransferStatusUseCase: { execute: jest.Mock };
+  let getTransferStatusUseCase: jest.Mocked<IGetTransferStatusUseCase>;
 
   beforeEach(async () => {
     transactionRepository = {
@@ -36,16 +39,16 @@ describe('Transfer API (integration)', () => {
       add: jest.fn(),
     };
     getTransferStatusUseCase = {
-      execute: jest.fn(async (id: string) => ({
-        id,
-        status: 'PROCESSING',
-      })),
+      execute: jest.fn<IGetTransferStatusUseCase['execute']>()
+        .mockImplementation(async (id) => ({
+          id,
+          status: 'PROCESSING',
+        })),
     };
 
     module = await Test.createTestingModule({
       controllers: [TransferController],
       providers: [
-        ProcessTransferUseCase,
         { provide: PROCESS_TRANSFER_USE_CASE, useClass: ProcessTransferUseCase },
         { provide: GET_TRANSFER_STATUS_USE_CASE, useValue: getTransferStatusUseCase },
         { provide: TRANSACTION_REPOSITORY, useValue: transactionRepository },

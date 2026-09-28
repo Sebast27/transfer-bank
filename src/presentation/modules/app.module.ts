@@ -1,6 +1,8 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule, minutes, seconds } from '@nestjs/throttler';
 import { BullMQModule } from '../../infrastructure/adapters/bullmq/bullmq.module';
 import { PrismaModule } from '../../infrastructure/adapters/prisma/prisma.module';
 import { HealthController } from '../controllers/health.controller';
@@ -18,6 +20,24 @@ import { WithdrawalModule } from './withdrawal.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // Rate limiting: 3 niveles (short/medium/long)
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: seconds(1),
+        limit: 3,
+      },
+      {
+        name: 'medium',
+        ttl: seconds(10),
+        limit: 20,
+      },
+      {
+        name: 'long',
+        ttl: minutes(1),
+        limit: 100,
+      },
+    ]),
     // BullMQ (Redis) Configuration
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -48,6 +68,11 @@ import { WithdrawalModule } from './withdrawal.module';
     WithdrawalModule,
   ],
   controllers: [HealthController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule { }
