@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { LoginDto } from '../../core/auth/application/dto/login.dto';
 import { RefreshTokenDto } from '../../core/auth/application/dto/refresh-token.dto';
 import { RegisterDto } from '../../core/auth/application/dto/register.dto';
@@ -14,6 +15,7 @@ export class AuthController {
   ) { }
 
   @Post('register')
+  @Throttle({ long: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @ApiResponse({ status: 201, description: 'Usuario registrado exitosamente' })
   @ApiResponse({ status: 409, description: 'Email ya registrado' })
@@ -22,6 +24,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ long: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login de usuario' })
   @ApiResponse({ status: 200, description: 'Login exitoso' })
@@ -31,6 +34,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Throttle({ long: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Renovar Access Token' })
   @ApiResponse({ status: 200, description: 'Token renovado' })
