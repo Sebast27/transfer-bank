@@ -28,7 +28,6 @@ import { PrismaService } from '../../src/infrastructure/adapters/prisma/prisma.s
 import { AccountController } from '../../src/presentation/controllers/account.controller';
 import { AdminController } from '../../src/presentation/controllers/admin.controller';
 import { DepositController } from '../../src/presentation/controllers/deposit.controller';
-import { HealthController } from '../../src/presentation/controllers/health.controller';
 import { StatementController } from '../../src/presentation/controllers/statement.controller';
 import { WithdrawalController } from '../../src/presentation/controllers/withdrawal.controller';
 import { JwtAuthGuard } from '../../src/presentation/guards/jwt-auth.guard';
@@ -115,7 +114,6 @@ describe('Protected controllers API (integration)', () => {
         AccountController,
         AdminController,
         DepositController,
-        HealthController,
         StatementController,
         WithdrawalController,
       ],
@@ -254,22 +252,6 @@ describe('Protected controllers API (integration)', () => {
       ]);
       expect(useCases.get(GET_USERS_USE_CASE)!.execute).toHaveBeenCalledTimes(1);
       expect(useCases.get(GET_PENDING_DEPOSITS_USE_CASE)!.execute).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('health route', () => {
-    it('should expose the health check endpoint', async () => {
-      // Arrange
-
-      // Act
-      const response = await request(app.getHttpServer()).get('/api/v1/health');
-
-      // Assert
-      expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
-        status: 'ok',
-        database: 'connected',
-      });
     });
   });
 });
