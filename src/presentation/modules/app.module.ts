@@ -2,10 +2,11 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { TerminusModule } from '@nestjs/terminus';
 import { ThrottlerGuard, ThrottlerModule, minutes, seconds } from '@nestjs/throttler';
 import { BullMQModule } from '../../infrastructure/adapters/bullmq/bullmq.module';
 import { PrismaModule } from '../../infrastructure/adapters/prisma/prisma.module';
-import { HealthController } from '../controllers/health.controller';
+import { HealthController } from '../../presentation/controllers/health.controller';
 import { AdminModule } from './admin.module';
 import { AuthModule } from './auth.module';
 import { DepositModule } from './deposit.module';
@@ -66,6 +67,7 @@ import { WithdrawalModule } from './withdrawal.module';
     StatementModule,
     DepositModule,
     WithdrawalModule,
+    TerminusModule,
   ],
   controllers: [HealthController],
   providers: [
